@@ -41,6 +41,8 @@ sio = io.listen(app);
 
 sio.sockets.on('connection', function (socket) {
 	
+	
+	
 	socket.on("event", function(a,b,c){
 		if (b > 1) // 70 = f = fire!
 		{

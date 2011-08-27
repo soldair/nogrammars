@@ -5,6 +5,8 @@ var game = {
 	mouse_coordinates:[0,0],
 	gameId:0,//your game
 	gameState:{
+		clientInterval:25,
+		serverInterval:100,
 		units:[]
 	},
 	init : function(){
@@ -80,11 +82,17 @@ var game = {
 		,socket  = this.socket = io.connect();
 
 		socket.on('connect', function () {
-			console.log('connection made');
+			console.log('connection made',arguments);
 			
 		});
 
-		socket.on('event', function(a,b,c,r){
+		socket.on('sync', function(state){
+			z.gameState = state;
+			z.myInterval = 
+			z.checkHeartBeat();
+		});
+		
+		socket.on('changes', function(a,b,c,r){
 			console.log('event!',a,b,c,r);
 			$('#msg').empty().append("event type: "+a+"<br>Command: "+b+"<br>At Coordinate: "+c[0]+","+c[1]);
 			if (b = 32){
@@ -94,6 +102,16 @@ var game = {
 				z.draw.drawUnit(c[0],c[1])
 			}
 		});
+	},
+	checkHeartBeat:funciton(){
+	
+	},
+	heartBeat:function(){
+		//translate all property values based on 
+		//(server interval/my interval)
+	},
+	onBeat:function(){
+	
 	},
 	paper:function(){
 		//RAPHAEL INIT
