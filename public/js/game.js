@@ -4,9 +4,10 @@ var game = {
 	socket:null,
 	mouse_coordinates:[0,0],
 	gameId:0,//your game
+	clientIntervalTime:50,
+	heartBeatInterval:null,
 	gameState:{
-		clientInterval:25,
-		serverInterval:100,
+		serverIntervalTime:100,
 		units:[]
 	},
 	init : function(){
@@ -85,12 +86,14 @@ var game = {
 
 		socket.on('sync', function(state){
 			z.gameState = state;
-			z.myInterval = 
-			z.checkHeartBeat();
+			console.log('WOOOO SET game state');
+			//z.checkHeartBeat();
 		});
 		
-		socket.on('changes', function(a,b,c,r){
+		socket.on('event', function(a,b,c,r){
+			
 			console.log('event!',a,b,c,r);
+			/*
 			$('#msg').empty().append("event type: "+a+"<br>Command: "+b+"<br>At Coordinate: "+c[0]+","+c[1]);
 			if (b = 32){
 				z.draw.energyWave(c[0],c[1],r)
@@ -98,17 +101,33 @@ var game = {
 			if (a == "click"){
 				z.draw.drawUnit(c[0],c[1])
 			}
+			*/
+		});
+		
+		socket.on('changes',function(changes){
+			console.log('changes! ',changes);
 		});
 	},
-	checkHeartBeat:funciton(){
-	
+	checkHeartBeat:function(){
+		if(!this.heartBeatInterval) this.heartBeat();
 	},
 	heartBeat:function(){
 		//translate all property values based on 
 		//(server interval/my interval)
+		var z = this;
+		z.heartBeatInterval = setInterval(function(){
+			$.each(z.beatCbs,function(k,v){
+				v(z.gameState);
+				//events buffer?
+			});
+		},z.clientIntervalTime);
 	},
-	onBeat:function(){
-	
+	onBeat:function(cb,remove){
+		if(remove) {
+			//remove
+		} else if(cb && cb.call){
+			this.beatCbs.push(cb);
+		}
 	},
 	paper:function(){
 		//RAPHAEL INIT
@@ -158,8 +177,8 @@ var game = {
 				paper.path("M"+(x+28)+" "+(y+28)+"L"+(x-28)+" "+(y-28)+" M"+(x-28)+" "+(y+28)+"L"+(x+28)+" "+(y-28)).attr({"stroke":"rgba(105,161,109,.5)", "stroke-width":2}),
 				paper.circle(x,y,14).attr({"fill":"r(.45,.45)rgba(112,23,18,.67):5-rgba(162,47,171,1):80-rgba(230,230,240,1)", "stroke-width":0})
 			);
-			setInterval(function(){game[_id].rotate(15)},30	); // for later
-			setInterval(function(){game[_id].translate(3,3)},33)
+			//setInterval(function(){game[_id].rotate(15)},30	); // for later
+			//setInterval(function(){game[_id].translate(3,3)},33)
 		},
 		linear:function (x, y,x1,y1){
 			var m = (y1 - y)/x1 -x;
