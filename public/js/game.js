@@ -25,9 +25,7 @@ var game = {
 		click: "fire",
 		
 	},
-	
-	units: [],
-	
+		
 	new_unit: function(type, _id, x, y){
 
 		if (type = 1){ //type one = saucer
@@ -46,12 +44,11 @@ var game = {
 		}
 		*/
 		// draw new object
-		// push object to units
 	},
 	
 	destroy_unit: function(_id){
 		// destroy unit
-		// removed from  units array 
+		// removed from  unit object from game 
 	},
 	setGameId:function(){
 		var p = window.location.pathname;
@@ -115,7 +112,8 @@ var game = {
 	},
 	paper:function(){
 		//RAPHAEL INIT
-		this.draw.paper = Raphael('viewPort', 5000, this.winy);
+		this.draw.paper = Raphael('viewPort', 5000, this.draw.winy);
+		console.log(this.winy);
 		this.draw.graph();
 		g = this.winy/10;
 	},
@@ -152,11 +150,16 @@ var game = {
 		},
 		drawUnit:function (x,y,_id){
 			var paper = this.paper;
-			var _id = 123; 
+			var _id = Math.random().toString(); 
 			game[_id] = paper.set();
 			game[_id].push(
-				paper.circle(x, y, 20).attr({"fill":"purple","stroke":"yellow","stroke-width":3})
-			)
+				paper.circle(x-3,y+5,40).attr({"fill":"rrgba(0,0,0,.5):50-rgba(0,0,0,.1)","stroke-width":0}),
+				paper.circle(x, y, 40).attr({"fill":"rrgba(240,240,240,1):10-rgba(47,208,63,1):75-rgba(165,182,157,1)","stroke":"yellow","stroke-width":1,}),
+				paper.path("M"+(x+28)+" "+(y+28)+"L"+(x-28)+" "+(y-28)+" M"+(x-28)+" "+(y+28)+"L"+(x+28)+" "+(y-28)).attr({"stroke":"rgba(105,161,109,.5)", "stroke-width":2}),
+				paper.circle(x,y,14).attr({"fill":"r(.45,.45)rgba(112,23,18,.67):5-rgba(162,47,171,1):80-rgba(230,230,240,1)", "stroke-width":0})
+			);
+			setInterval(function(){game[_id].rotate(15)},30	); // for later
+			setInterval(function(){game[_id].translate(3,3)},33)
 		},
 		linear:function (x, y,x1,y1){
 			var m = (y1 - y)/x1 -x;
