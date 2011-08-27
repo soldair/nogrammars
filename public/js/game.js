@@ -4,6 +4,7 @@ var game = {
 	socket:null,
 	mouse_coordinates:[0,0],
 	gameId:0,//your game
+	beatCbs:[],
 	clientIntervalTime:50,
 	heartBeatInterval:null,
 	gameState:{
@@ -18,10 +19,11 @@ var game = {
 		$('#viewPort').mousemove(function(e){
 			z.mouse_coordinates = [e.pageX, e.pageY]
 		});
-		this.event_emitter(); 
-		this.paper();
-		//
+		this.event_emitter();
+		//set loader until server reports game state
+		this.loading(true);
 		this.setGameId();
+
 		//after set gameId
 		this.socketInit();
 	},
@@ -87,10 +89,12 @@ var game = {
 			z.socket.emit("join",z.gameId);
 		});
 
+		//server reports game state here
 		socket.on('sync', function(state){
 			z.gameState = state;
-			console.log('WOOOO SET game state');
-			//z.checkHeartBeat();
+			z.paper();
+			z.loading(false);
+			z.checkHeartBeat();
 		});
 
 		socket.on('error', function(data){
@@ -123,8 +127,9 @@ var game = {
 		});
 		
 		socket.on('changes',function(changes){
-			console.log('changes! ',changes);
-			
+			$.each(changes,function(k,unit){
+				z.gameState.units[unit.id] = unit;
+			});
 		});
 	},
 	checkHeartBeat:function(){
@@ -136,8 +141,9 @@ var game = {
 		var z = this;
 		z.heartBeatInterval = setInterval(function(){
 			$.each(z.beatCbs,function(k,v){
-				v(z.gameState);
+				//v(z.gameState);
 				//events buffer?
+				console.log(k,v);
 			});
 		},z.clientIntervalTime);
 	},
@@ -148,15 +154,26 @@ var game = {
 			this.beatCbs.push(cb);
 		}
 	},
+	paperInit:0,
 	paper:function(){
+		if(this.paperInit) return;
+		this.paperInit = 1;
 		//RAPHAEL INIT
-		this.draw.paper = Raphael('viewPort', 5000, this.draw.winy);
-		console.log(this.winy);
+		this.draw.paper = Raphael('viewPort', this.gameState.world.width || 5000, this.gameState.world.height || this.draw.winy);
+		//console.log(this.winy);
 		this.draw.graph();
-		g = this.winy/10;
+		//g = this.winy/10;
 	},
 	setBeats:function(){
 		//unit movement
+		this.onBeat(function(serverData){
+			//var translationFactor = serverData.serverIntervalTime/
+			$.each(serverData.units,function(k,unit){
+				if(unit.position[0] != unit.destination[0] || unit.position[1] != unit.destination[1]){
+					
+				}
+			});
+		});
 	},
 	draw:{
 		paper:null,
@@ -265,8 +282,25 @@ var game = {
 				}
 			});
 		},10000);
+	},
+	loading:function(on){
+		if(on && !$("#loading").length) {
+			$("<div>").attr('id','loading').css({
+				position:'fixed'
+				,top:($(window).height()/2)-30
+				,left:($(window).width()/2)-70
+				,zIndex:7000
+				,backgroundColor:"#fff"
+				,borderRadius:'5px'
+				,paddingRight:'8px'
+				,paddingLeft:'8px'
+			}).html("<h1>LOADING</h1>").appendTo("body");
+		} else {
+			$("#loading").remove();
+		}
 	}
-}
+};
+
 $(function(){
 	game.init();
 });

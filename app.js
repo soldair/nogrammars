@@ -134,7 +134,7 @@ var server = {
 					
 					console.log(Object.keys(z.games).length,' games remaining');
 				}
-				//TODO  clean up a players objects
+				//TODO  clean up a players objects/units if game still exists
 				
 				delete z.clients[id];
 				console.log('deleted client ',id,' ',Object.keys(z.clients).length,' clients remaining');;
@@ -156,6 +156,7 @@ var server = {
 			this.games[gameId] = {
 				clients:{},
 				game:new gameCore.game(gameId,function(changes){
+					console.log(z.games);
 					z.emitChanges(z.games[gameId],changes);
 				})
 			};
