@@ -49,6 +49,7 @@ var server = {
 		var z = this
 		, sio = z.sio = io.listen(z.app);
 
+		//NOTE this will need refactor
 		sio.sockets.on("connection", function (socket) {
 
 			socket.on("join",function(game){
@@ -56,17 +57,20 @@ var server = {
 					socket.get('clientid',function(id){
 						if(!id) {//brand new
 							//unique client id
-							var id = clientIdInc++;
-							
+							id = clientIdInc++;
+
 							z.clients[id] = {game:z.joinedGame(game,socket)};
 							socket.set('clientid',id);
 							//TODO player joined broadcast
 							
+							console.log("brand new client "+id);
+
 						} else if(z.clients[id]){
 							if(!z.clients[id] || !z.clients[id].game || !z.games[z.clients[id].game]){
 								//not part of an existing game
 								z.clients[id] = {game:z.joinedGame(game,socket)};
 								//TODO player joined broadcast
+								console.log("existing client with no game ",id," joined game ",z.clients[id].game);
 							} else {
 								socket.emit('error',{msg:'Weird, you are aready part of game '+z.clients[id].game});
 							}
@@ -85,16 +89,15 @@ var server = {
 			socket.on("abandon",function(){
 				socket.get('clientid',function(id){
 					if(id && z.clients[id] && z.clients[id].game && z.games[z.clients[id].game]) {
-
-						delete z.games[z.clients[id].game];
-						//TODO player abandon broadcast
+						delete z.games[z.clients[id].game].clients[id];
+						//player abandon broadcast
+						z.emitToGame(game,'client_abandoned',{id:id});
 					}
 					//could check active games for player.. would be bug condition
 				});
 			});
 			
 			socket.on("event", function(data){
-
 				socket.get('clientid',function(id){
 					if(!id) return;
 					var gameId = this.clients[id]||{}.game;
@@ -109,15 +112,18 @@ var server = {
 					console.log('disconect: '+id);
 					if(!z.clients[id]) return;
 
-					delete z.games[z.clients[id].game].clients[id];
-					if(Object.keys(z.games[z.clients[id].game].clients).length == 0) {
+					var game = z.games[z.clients[id].game];
+
+					delete game.clients[id];
+					if(Object.keys(game.clients).length == 0) {
 						console.log('last client left game ',z.clients[id].game,' cleaning up');
 						console.log(Object.keys(z.games).length,' games remaining');
 					}
 
 					delete z.clients[id];
 					console.log('deleted client ',id,' ',Object.keys(z.clients).length,' clients remaining');;
-					//TODO player abandon broadcast
+					//player abandon broadcast
+					z.emitToGame(game,'client_abandoned',{id:id});
 				});
 			});
 
@@ -128,32 +134,34 @@ var server = {
 		app.listen(process.env.NODE_ENV === 'production' ? 80 : 8000);
 		console.log('Listening on ' + app.address().port);
 	},
-	//
-	joinedGame:function(gameId,socket){
+	// ------------------- /\ init stuff --- \/ helper stuff
+	joinedGame:function(gameId,clientId,socket){
 		var gameObject,z = this;
 		if(!this.games[gameId]){
 			gameObject = this.games[gameId] = {
-				clients:[],
+				clients:{},
 				game:new gameCore.game(gameId,function(changes){
 					z.emitChanges(gameObject,changes);
 				});
 			};
 		}
 		
-		var id = gameObject.clients.length;
-		socket.set('gameclient',id);
-		socket.set('gameid',gameId);
+		//socket.set('gameid',gameId);
 
-		gameObject.clients.push(socket);
+		gameObject.clients[clientId] = socket;
 	},
 	emitChanges:function(game,changes){
+		//can only use volitile if i blast sync often
+		//TODO periodic full sync
+		this.emitToGame(game,'changes',changes);
+	},
+	emitToGame:function(game,ev,data){
 		//prolly a better way than looping but this is ok for now i hope.
-		game.clients.forEach(function(socket,k) {
-			//can only use volitile if i blast sync often
-			//TODO periodic full sync
+		game.clients.forEach(function(socket,id) {
 			socket.emit('changes', changes);
 		});
 	}
+	
 };
 
 
