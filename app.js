@@ -155,10 +155,12 @@ var server = {
 		if(!this.games[gameId]){
 			this.games[gameId] = {
 				clients:{},
-				game:new gameCore.game(gameId,function(changes){
-					console.log(z.games);
-					z.emitChanges(z.games[gameId],changes);
-				})
+				game:new gameCore.game(gameId)
+			};
+			
+			this.games[gameId].game.onChangeCb = function(changes){
+				console.log(z.games);
+				z.emitChanges(z.games[gameId],changes);
 			};
 		}
 
@@ -179,7 +181,10 @@ var server = {
 		//can only use volitile if i blast sync often
 		//PERIODIC full sync - this was done before performance testing and may not be necessary
 		if(this._fullSyncKeyFrame+this.fullSyncKeyFrame < Date.now()){
-			this.emitToGame(game,'changes',game.gameState.units);
+			console.log('i die=(');
+			console.log(Object.keys(game));
+			
+			this.emitToGame(game,'changes',game.game.gameState.units);
 			this._fullSyncKeyFrame = Date.now();
 		} else {
 			this.emitToGame(game,'changes',changes);

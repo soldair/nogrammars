@@ -108,7 +108,7 @@ var game = {
 		});
 
 		socket.on('abandoned',function(data){
-			console.log('abandoned event emitted ',data).
+			//console.log('abandoned event emitted ',data).
 			z.flashMessage(data.id+' abandoned the game!');
 		});
 		
