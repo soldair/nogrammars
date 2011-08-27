@@ -12,7 +12,8 @@ var game = {
 		units:{}
 	},
 	renderState:{
-		units:{}
+		units:{},
+		objects:{}
 	},
 	init : function(){
 		var z = this;
@@ -26,6 +27,8 @@ var game = {
 
 		//after set gameId
 		this.socketInit();
+		//share renderState with draw object - kinda sucky
+		this.draw.renderState = this.renderState;
 	},
 	cmds:{
 		click: "fire",
@@ -86,7 +89,8 @@ var game = {
 
 		socket.on('connect', function () {
 			console.log('connection made',arguments);
-			z.socket.emit("join",z.gameId);
+			var iosid = (z.parseCookies()||{})['io.sid']||false;
+			z.socket.emit("join",{game:z.gameId,sid:iosid});
 		});
 
 		//server reports game state here
@@ -129,6 +133,20 @@ var game = {
 		socket.on('changes',function(changes){
 			$.each(changes,function(k,unit){
 				z.gameState.units[unit.id] = unit;
+			});
+		});
+		
+		socket.on('delete',function(deletes){
+			$.each(deletes,function(k,data){
+				if(data.type == 'unit'){
+					if(z.gameState.units[data.id]){
+						z.deleteRenderedUnit(z.gameState.units[data.id]);
+						delete z.gameState.units[data.id];
+					}
+				} else if(z.gameState.objects[data.id]){
+					z.deleteRenderedObject(z.gameState.units[data.id]);
+					delete z.gameState.objects[data.id];
+				}
 			});
 		});
 	},
@@ -261,6 +279,18 @@ var game = {
 			return [m,b]
 		}
 	},
+	deleteRenderedUnit:function(unit){
+		if(this.renderState.units[unit.id]){
+			var renderState = this.renderState.units[unit.id];
+			renderState.object.remove();
+		}
+	},
+	deleteRenderedObject:function(object){
+		if(this.renderState.objects[object.id]){
+			var renderState = this.renderState.objects[object.id];
+			renderState.object.remove();
+		}
+	},
 	//for debug
 	flashMessage:function(message){
 		if(!$("#flashmsg").length) {
@@ -298,6 +328,17 @@ var game = {
 		} else {
 			$("#loading").remove();
 		}
+	},
+	parseCookies:function(){
+		var c = document.cookie
+		,chunks = c.split(";")
+		,chunks = chunks.map(function(v){return v.trim?v.trim():v.replace(/^\s+|\s+$/g,'')})
+		,kv=[];
+		$.each(chunks,function(i,data){
+			var p = data.split('=');
+			kv[p.shift()] = decodeURIComponent(p.shift());
+		});
+		return kv;
 	}
 };
 

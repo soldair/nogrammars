@@ -30,6 +30,11 @@ var server = {
 			app.use(express.static(__dirname + '/public'));
 			app.set('views', __dirname);
 			app.set('view engine', 'jade');
+			app.use(express.cookieParser());
+			
+			var sess = express.session({ secret: "1QyupeJT3MVzJOLf" });
+			
+			app.use(sess);
 		});
 
 
@@ -38,10 +43,14 @@ var server = {
 		*/
 
 		app.get('/', function (req, res) {
+			//NOTE should be set on all routes
+			res.cookie('io.sid', req.sessionID, {httpOnly:false,path:'/'});
 			res.render('index', { layout: false });
 		});
 
 		app.get('/game/:id',function(req,res){
+			//NOTE should be set on all routes
+			res.cookie('io.sid', req.sessionID, {httpOnly:false,path:'/'});
 			res.render('index', { layout: false});
 		});
 
@@ -49,25 +58,36 @@ var server = {
 	socketio:function(){
 		var z = this
 		, sio = z.sio = io.listen(z.app);
-
+		
+		sio.set('log level',1);
+		
 		//NOTE this will need refactor... its a little hairy
 		sio.sockets.on("connection", function (socket) {
+			//TODO cannot use socket id because its unique with each page refresh  
 			var _clientId = socket.id;
 			console.log('socket id ', socket.id);
 			
-			socket.on("join",function(game){
+			socket.on("join",function(data){
+				var game = data.game
+				,iosid = data.sid;
+				
 				if(game && /^\d+$/.test(game+'')) {
 					socket.get('clientid',function(id){
 						if(!id) {//brand new
-							//unique client id
-							id = _clientId;
-
-							z.clients[id] = {game:z.joinedGame(game,id,socket)};
+							//persistent sid or unique per page client id
+							id = iosid||_clientId;
 							socket.set('clientid',id);
-							
-							console.log("brand new client "+id);
-
+							if(!z.clients[id]){
+								z.clients[id] = {game:z.joinedGame(game,id,socket)};
+								console.log("brand new client "+id);
+							} else {
+								console.log("RECONNECTED client "+id);
+								z.clients[id].disconnected = null;
+							}
 						} else if(z.clients[id]){
+							//clear disconnected flag if present
+							if(z.clients[id].disconnected) delete z.clients[id].disconnected;
+							
 							if(!z.clients[id] || !z.clients[id].game || !z.games[z.clients[id].game]){
 								//not part of an existing game
 								z.clients[id] = {game:z.joinedGame(game,id,socket)};
@@ -90,18 +110,7 @@ var server = {
 
 			socket.on("abandon",function(){
 				socket.get('clientid',function(id){
-					//TODO  clean up a players objects
-					if(id && z.clients[id] && z.clients[id].game && z.games[z.clients[id].game]) {
-						delete z.games[z.clients[id].game].clients[id];
-						//player abandon broadcast
-						z.emitToGame(game,'abandoned',{id:id});
-						//verify game is not empty
-						if(Object.keys(z.games[z.clients[id].game].clients).length == 0) {
-							console.log('last client left game ',z.clients[id].game,' cleaning up');
-							delete z.games[z.clients[id].game];
-						}
-					}
-					//could check active games for player.. would be bug condition
+					z.abandonnedGame(id);
 				});
 			});
 			
@@ -117,29 +126,7 @@ var server = {
 			socket.on("disconnect", function () {
 				
 				console.info('disconnected:  ',_clientId);
-				
-				var id = _clientId;
-
-				if(!z.clients[id]) return;
-
-				console.log('was in game ',z.clients[id],'   ',z.clients[id].game);
-
-				var game = z.games[z.clients[id].game];
-
-				delete game.clients[id];
-				if(Object.keys(game.clients).length == 0) {
-					console.log('last client left game ',z.clients[id].game,' cleaning up');
-					
-					delete z.games[z.clients[id].game];
-					
-					console.log(Object.keys(z.games).length,' games remaining');
-				}
-				//TODO  clean up a players objects/units if game still exists
-				
-				delete z.clients[id];
-				console.log('deleted client ',id,' ',Object.keys(z.clients).length,' clients remaining');;
-				//player abandon broadcast
-				z.emitToGame(game,'abandoned',{id:id});
+				z.disconnectedFromGame(_clientId);
 			});
 
 			
@@ -159,8 +146,12 @@ var server = {
 			};
 			
 			this.games[gameId].game.onChangeCb = function(changes){
-				console.log(z.games);
 				z.emitChanges(z.games[gameId],changes);
+			};
+			
+			this.games[gameId].game.onDeleteCb = function(deletes){
+				//pass message to delete units and objects
+				z.emitToGame(z.games[gameId],'delete',deletes);
 			};
 		}
 
@@ -168,7 +159,7 @@ var server = {
 
 		this.games[gameId].clients[clientId] = socket;
 		
-		//THIS IS hwere i make the first unit. this is not really a good place for this call but it'll do for 5:42 am
+		//THIS IS where i make the first unit. this is not really a good place for this call but it'll do for 5:42 am
 		this.games[gameId].game.createUnit('ship',[+(Math.random()+'').substr(2,3),30],clientId);
 		
 		//sync current game state
@@ -176,17 +167,53 @@ var server = {
 
 		return gameId;
 	},
+	disconnectedFromGame:function(id){
+		var z = this;
+		if(!z.clients[id]) return;
+		//in 30 seconds if the client with id has not reconnected remove them from the game
+		z.clients[id].disconnected = 1;
+		setTimeout(function(){
+			if(z.clients[id].disconnected){
+				console.log('is has been 30 seconds since client '+id+' has disconnected. they have abandoned');
+				z.abandonedGame(id);
+			}
+		},20000);
+	},
+	abandonedGame:function(id){
+		var z = this;
+		if(!z.clients[id]) return;
+
+		console.log('was in game ',z.clients[id],'   ',z.clients[id].game);
+
+		var game = z.games[z.clients[id].game];
+
+		delete game.clients[id];
+		if(Object.keys(game.clients).length == 0) {
+			
+			console.log('last client left game ',z.clients[id].game,' cleaning up');
+			delete z.games[z.clients[id].game];
+			console.log(Object.keys(z.games).length,' games remaining');
+			
+		} else if(game.game && Object.keys(game.game.units).length){
+
+			game.game.deleteUnitsByOwner(id);
+
+		}
+
+		delete z.clients[id];
+		console.log('deleted client ',id,' ',Object.keys(z.clients).length,' clients remaining');;
+		//player abandon broadcast
+		z.emitToGame(game,'abandoned',{id:id});
+	},
 	emitChanges:function(game,changes){
 		if(!this._fullSyncKeyFrame) this._fullSyncKeyFrame = Date.now();
 		//can only use volitile if i blast sync often
 		//PERIODIC full sync - this was done before performance testing and may not be necessary
 		if(this._fullSyncKeyFrame+this.fullSyncKeyFrame < Date.now()){
-			console.log('i die=(');
-			console.log(Object.keys(game));
-			
 			this.emitToGame(game,'changes',game.game.gameState.units);
 			this._fullSyncKeyFrame = Date.now();
 		} else {
+			//TODO try volitile for not full sync long polling perf
 			this.emitToGame(game,'changes',changes);
 		}
 	},
