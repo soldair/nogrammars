@@ -1,7 +1,7 @@
 {
     "name": "nogrammars"
   , "version": "0.0.0"
-  , "description": "knockout 2011 baby!"
+  , "description": "knockout 2011 baby! game time"
   , "author": "Ryan Day <soldair@gmail.com>, Jonathon Anthony <jonathon@nationalheadquarters.org>"
   , "dependencies": { "express":"2.4.x","nko":">=0.1.1", "socket.io": "0.7.x" }
   , "devDependencies": { "should": ">= 0.0.1" }
