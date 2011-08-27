@@ -24,8 +24,17 @@ function graph(){
 	}
 }graph()
 
-function drawUnit(x,y){
-	paper.circle(x, y, 25).attr({"fill":"yellow","stroke":"purple","stroke-width":8})
+function energyWave(x,y,r,_id){
+	var _id = 123;
+	game[_id] = paper.circle(0,winy,r).attr({"fill":"r(0.25, 0.75)rgba(138,211,242,1)-#ddd"}).animate({"cx":x,"cy":y,"r":r*5},333)
+}
+
+function drawUnit(x,y,_id){
+var _id = 123; 
+game[_id] = paper.set();
+  game[_id].push(
+		paper.circle(x, y, 20).attr({"fill":"purple","stroke":"yellow","stroke-width":3})
+	)
 }
 
 // socket.io init
@@ -36,9 +45,12 @@ var socket = io.connect();
    console.log('connection made')
  });
 
-socket.on('event', function(a,b,c){
+socket.on('event', function(a,b,c,r){
 	console.log('event!')
 	$('#msg').empty().append("event type: "+a+"<br>Command: "+b+"<br>At Coordinate: "+c[0]+","+c[1]);
+	if (b = 32){
+		energyWave(c[0],c[1],r)
+	}
 	if (a == "click"){
 		drawUnit(c[0],c[1])
 	}
@@ -61,9 +73,37 @@ var game = {
 		
 	},
 	
+	units: [],
+	
+	new_unit: function(type, _id, x, y){
+
+		if (type = 1){
+			var _id = 123; 
+			game[_id] = paper.set();
+			  game[_id].push(
+					paper.circle(xy, y, 20).attr({"fill":"purple","stroke":"yellow","stroke-width":3})
+				)
+		}
+		/*
+		if (type = 2){
+			
+		}
+		if (type = 3){
+			
+		}
+		*/
+		// draw new object
+		// push object to units
+	},
+	
+	destroy_unit: function(_id){
+		// destroy unit
+		// removed from  units array 
+	},
+	
 	event_emitter: function(){
 		var z = this,
-		keys = [65,68,83,87,69,81,32]
+		keys = [65,68,83,87,69,81,32,70]
 		, kup = function(e){
 			e.preventDefault();
 			if (!_.include(keys, e.keyCode)){return false}

@@ -38,7 +38,10 @@ sio = io.listen(app);
 sio.sockets.on('connection', function (socket) {
 	
 	socket.on("event", function(a,b,c){
-		console.log(a+"\n"+b+"\n"+c);
+		if (b === 32) // 32 = space bar, fire!
+		{
+			sio.sockets.emit("event", a, b, c, 10) // the 4th variable is radius, proportional to the energy in the fire!
+		}
 		sio.sockets.emit('event', a, b, c)
 	})
 	
