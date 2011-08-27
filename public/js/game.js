@@ -3,14 +3,21 @@
 var game = {
 	socket:null,
 	mouse_coordinates:[0,0],
+	gameId:0,//your game
+	gameState:{
+		units:[]
+	},
 	init : function(){
 		var z = this;
 		$('#viewPort').mousemove(function(e){
 			z.mouse_coordinates = [e.pageX, e.pageY]
 		});
-		this.socketInit();
 		this.event_emitter(); 
 		this.paper();
+		//
+		this.setGameId();
+		//after set gameId
+		this.socketInit();
 	},
 	cmds:{
 		click: "fire",
@@ -44,7 +51,15 @@ var game = {
 		// destroy unit
 		// removed from  units array 
 	},
-	
+	setGameId:function(){
+		var p = window.location.pathname;
+		if(p.indexOf('/game/') == 0) {
+			var id = p.split('/').pop();
+			if(id && /^\d+$/.test(id)) {
+				this.gameId = id;
+			}
+		}
+	},
 	event_emitter: function(){
 		var z = this,
 		keys = [65,68,83,87,69,81,32,70]
@@ -65,7 +80,8 @@ var game = {
 		,socket  = this.socket = io.connect();
 
 		socket.on('connect', function () {
-			console.log('connection made')
+			console.log('connection made');
+			
 		});
 
 		socket.on('event', function(a,b,c,r){

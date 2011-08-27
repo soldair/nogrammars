@@ -32,6 +32,10 @@ app.get('/', function (req, res) {
   res.render('index', { layout: false });
 });
 
+app.get('/game/:id',function(req,res){
+	res.render('index', { layout: false});
+});
+
 
 sio = io.listen(app);
 
@@ -42,7 +46,7 @@ sio.sockets.on('connection', function (socket) {
 		{
 			sio.sockets.emit("event", a, b, c, 10) // the 4th variable is radius, proportional to the energy in the fire!
 		}
-		sio.sockets.emit('event', a, b, c)
+		sio.sockets.emit('event', a, b, c);
 	})
 	
 })
