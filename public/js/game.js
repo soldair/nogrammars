@@ -81,7 +81,7 @@ var game = {
 
 		socket.on('connect', function () {
 			console.log('connection made',arguments);
-			
+			z.socket.emit("join",{});
 		});
 
 		socket.on('sync', function(state){
