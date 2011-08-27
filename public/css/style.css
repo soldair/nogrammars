@@ -1,0 +1,18 @@
+body{
+	background:#444;
+}
+#viewPort{
+	position:absolute;
+	left:0;
+	top:0;
+	margin:0;
+	padding:0;
+}
+#msg{
+	height:300px;
+	width:300px;
+	z-index:4;
+	position:fixed;
+	right:100px;
+	top:100px;
+}
