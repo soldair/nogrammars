@@ -132,7 +132,7 @@ var game = {
 		},
 		drawUnit:function (x,y,_id){
 			var paper = this.paper;
-			var _id = 123; 
+			var _id = Math.random().toString(); 
 			game[_id] = paper.set();
 			game[_id].push(
 				paper.circle(x-3,y+5,40).attr({"fill":"rrgba(0,0,0,.5):50-rgba(0,0,0,.1)","stroke-width":0}),
