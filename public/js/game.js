@@ -31,9 +31,9 @@ function energyWave(x,y,r,_id){
 	game[_id] = paper.circle(0,winy,r).attr({"stroke-width":0,"fill":"rrgba(138,211,242,1)-rgba(68,68,68,0)"}).animate({"cx":5000,"cy":z,"r":r*100,"opcaity":0,"fill-opacity":0},747)
 }
 function drawUnit(x,y,_id){
-var _id = 123; 
-game[_id] = paper.set();
-  game[_id].push(
+	var _id = 123; 
+	game[_id] = paper.set();
+	game[_id].push(
 		paper.circle(x, y, 20).attr({"fill":"purple","stroke":"yellow","stroke-width":3})
 	)
 }
@@ -46,9 +46,9 @@ function linear(x, y,x1,y1){
 
 var socket = io.connect();
 
- socket.on('connect', function () {
-   console.log('connection made')
- });
+socket.on('connect', function () {
+	console.log('connection made')
+});
 
 socket.on('event', function(a,b,c,r){
 	console.log('event!')
@@ -66,7 +66,7 @@ var game = {
 
 	init : function(){
 		winx = window.innerWidth;
-    	winy = window.innerHeight;
+		winy = window.innerHeight;
 		$('#viewPort').mousemove(function(e){
 			mouse_coordinates = [e.pageX, e.pageY]
 		});
