@@ -23,6 +23,18 @@ app.configure(function () {
 
 });
 
+sio = io.listen(app);
+
+sio.configure('development', function(){
+	sio.enable('browser client etag');
+  sio.set('log level', 3);
+
+  sio.set('transports', [
+    'websocket'
+  , 'flashsocket'
+  ]);
+});
+
 
 /**
  * App routes.
@@ -37,8 +49,6 @@ app.get('/game/:id',function(req,res){
 });
 
 
-sio = io.listen(app);
-
 sio.sockets.on('connection', function (socket) {
 	
 	socket.on("event", function(a,b,c){
@@ -46,6 +56,7 @@ sio.sockets.on('connection', function (socket) {
 		{
 			sio.sockets.emit("event", a, b, c, 10) // the 4th variable is radius, proportional to the energy in the fire!
 		}
+		else
 		sio.sockets.emit('event', a, b, c);
 	})
 	
