@@ -17,7 +17,10 @@ function t(){
 		return "-"
 	}
 }
-
+var mouse_coordinates=[0,0]
+$(window).mousemove(function(e){
+	mouse_coordinates = [e.pageX, e.pageY]
+});
 var winx=window.innerWidth,
 winy=window.innerHeight,
 commander = Raphael("command", winx, winy);
@@ -40,10 +43,10 @@ function graph(){
 	}
 	for (i=0; i < w; i+=50){
 		commander.circle(winx/2,winy/2,i).attr({"stroke":"rgba(252,244,6,.1)"});
-		commander.path("M"+i+" 0L"+i+" "+h).attr({"stroke":"rgba(252,244,6,.1)"});
+	//	commander.path("M"+i+" 0L"+i+" "+h).attr({"stroke":"rgba(252,244,6,.1)"});
 	}
 	for (i=0; i < w; i+=50){
-		commander.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
+	//	commander.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
 	}	
 }graph()
 	/*	$(document).mousemove(function(e){
@@ -53,6 +56,16 @@ function graph(){
 		})
 	*/
 var e = {
+	linear:function (x, y,x1,y1){
+		var m = (y1 - y)/x1 -x;
+		var b = y - (m*x);
+		return [m,b]
+	},
+	energyWave:function(x,y,r){
+		var mb = this.linear(0,winy,x,y)
+		,z = (mb[0]*5000) + mb[1];
+		commander.circle(0,this.winy,r).attr({"stroke-width":0,"fill":"rrgba(138,211,242,1)-rgba(68,68,68,0)"}).animate({"cx":5000,"cy":z,"r":r*100,"opcaity":0,"fill-opacity":0},747)
+	},
 	drawUnit:function (x,y,_id,team, shield,eRad){
 		if (team == "purple"){ var tcolor = "purple", fcolor =.66}
 		if (team == "yellow"){var tcolor = "rgba(47,208,63,.2):80", fcolor =.25}
@@ -100,8 +113,8 @@ var e = {
 	event_emitter: function(){
 		var z = this
 		, click_fn = function(e){
-			console.log(e)
-			z.socket.emit("event", "click", z.cmds.click, z.mouse_coordinates)
+			console.log(e);
+			this.energyWave(mouse_coordinates[0],mouse_coordinates[1],3);
 		}
 		, getDelta = function(e){
 			var evt=window.event || e;
@@ -113,7 +126,7 @@ var e = {
 				
 			}
 		}
-		$(document).bind('click',click_fn);
+		$('#command').bind('click',click_fn);
 		var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel"
 		document.addEventListener(mousewheelevt, getDelta, false)
 	},
@@ -127,6 +140,6 @@ var finito = [[]];
 
 var fPath = commander.path("M100 100 "+(winx-100)+" 100 "+(winx-100)+" "+(winy-100)+" 100 "+(winy-100)+"z").attr({stroke:"transparent"})
 
-commander.text(100,100,"F")
-commander.print(100, 100, "Test string", commander.getFont("Times", 800), 30);
+commander.text(winx/2,winy/2,"FINITO").attr({"font-size":133, fill:"#333", "stroke":"rgba(252,244,6,.1)", "stroke-width":5})
+//paper.print(100, 100, "Test string", paper.getFont("Times", 800), 30);
 
