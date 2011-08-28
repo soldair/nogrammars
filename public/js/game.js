@@ -2,6 +2,21 @@ var game;
 if(!window.console) window.console = {log:function(){}};
 
 (function(){
+// bad gloabls place
+var winx=window.innerWidth
+,winy=window.innerHeight
+,w = $('#viewPort').width()
+,h = $('#viewPort').height()
+,vp =  $('#viewPort')
+,vpleft = parseInt(vp.css("left"))
+,vptop = parseInt(vp.css("top"))
+,cx = (winx-w)/2
+,cy = (winy-h)/2
+,rx = w/winx
+,ry = h/(winy);
+//if they are in here i will keep them
+
+	
 //_game as the local refrence to the main object
 var _game;
 _game = game = {
@@ -11,6 +26,7 @@ _game = game = {
 	beatCbs:[],
 	clientIntervalTime:50,
 	heartBeatInterval:null,
+	viewPort:null,
 	gameState:{
 		serverIntervalTime:100,
 		units:{}
@@ -21,7 +37,7 @@ _game = game = {
 	},
 	init : function(){
 		var z = this;
-		$('#viewPort').mousemove(function(e){
+		z.viewPort = $('#viewPort').mousemove(function(e){
 			z.mouse_coordinates = [e.pageX, e.pageY]
 		});
 		this.event_emitter();
@@ -95,10 +111,13 @@ _game = game = {
 			z.socket.emit("event", "key", code, z.mouse_coordinates);
 		}
 		, click_fn = function(e){
-			console.log(parseInt(vp.css("left")));
+			console.log('left before: ',z.viewPort.css("left"));
 			z.socket.emit("event", "click", z.cmds.click, z.mouse_coordinates);
-			$('#viewPort').css({left: parseInt(vp.css("left"))-(z.mouse_coordinates[0]-winx/2), top: parseInt(vp.css("top"))-(z.mouse_coordinates[1]-winy/2)})
-			console.log(parseInt(vp.css("left")));
+			$('#viewPort').css({
+				left: parseInt(z.viewPort.css("left").replace('px',''))-(z.mouse_coordinates[0]-z.winx/2), 
+				top: parseInt(z.viewPort.css("top").replace('px',''))-(z.mouse_coordinates[1]-z.winy/2)
+			})
+			console.log('left after: ',z.viewPort.css("left"));
 		}
 		, getDelta = function(e){
 			var evt=window.event || e;
@@ -543,5 +562,16 @@ _game.draw = {
 		return [m,b]
 	}
 };
+
+//hoisted helper functions
+function toggleValue(getter){
+	if (!getter.get){
+		getter.get = true;
+		return
+	}
+	if (getter.get){
+		getter.get = !getter.get
+	}
+}
 
 }());
