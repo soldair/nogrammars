@@ -5,12 +5,12 @@ winy=window.innerHeight;
    console.log('connection made')
  });
 function toggleValue(getter){
-	if (!getter){
-		getter = true;
+	if (!getter.get){
+		getter.get = true;
 		return
 	}
-	if (getter){
-		getter = !getter
+	if (getter.get){
+		getter.get = !getter.get
 	}
 }
 var game = {
@@ -103,7 +103,7 @@ var game = {
 		, kup = function(e){
 					console.log(e.keyCode);
 			e.preventDefault()
-			if(e.keyCode == 68){toggleValue(game.scout.get);game.scout.set()}
+			if(e.keyCode == 68){toggleValue(game.scout);game.scout.set()}
 			if (!_.include(keys, e.keyCode)){return false}
 			if (e.keyCode > 48 && e.keyCode < 58){game.fluxCapacity.set((e.keyCode-48)*10);return}
 			if (e.keyCode == 48){game.fluxCapacity.set(100);return}
@@ -125,7 +125,7 @@ var game = {
 				game.fluxCapacity.set(game.fluxCapacity.get-5);
 			}
 		}
-		$(document).bind('keypress',kup);
+		$(document).bind('keyup',kup);
 		$(document).bind('click',click_fn);
 		var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel"
 		document.addEventListener(mousewheelevt, getDelta, false)
@@ -158,7 +158,7 @@ var game = {
 		                this.ellipse(x, y, r, r).attr({stroke: "none", fill: "r#ccc-#ccc", opacity: 0})
 		            );
 		        };
-		this.draw.paper = Raphael('viewPort', 5000, 5000);
+		this.draw.paper = Raphael('viewPort', 5000, 2000);
 		this.draw.graph();
 		this.draw.commander = Raphael('console',winx,winy );
 		
@@ -189,13 +189,14 @@ var game = {
 				paper.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
 			}
 			for (i=0; i < w; i+=50){
+					//paper.circle(2500,1000,i).attr({"fill":"transparent", stroke:"rgba(252,244,6,.1)", "stroke-width":1});
 				paper.path("M"+i+" 0L"+i+" "+h).attr({"stroke":"rgba(252,244,6,.1)"});
 			}
 			for (i=0; i < w; i+=50){
 				paper.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
 			}
 			
-			paper.circle(2500,2500,2400).attr({"fill":"transparent", "stroke-width":300});
+			paper.circle(2500,1000,2400).attr({"fill":"transparent", "stroke-width":10});
 			vp.css({left:-1500,top:cy});			
 		},
 		energyWave:function(x,y,r,_id){
