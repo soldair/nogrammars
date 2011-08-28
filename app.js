@@ -242,7 +242,7 @@ var server = {
 		//can only use volitile if i blast sync often
 		//PERIODIC full sync
 		if(this._fullSyncKeyFrame+this.fullSyncKeyFrame < Date.now()){
-			this.emitToGame(game,'changes',game.game.gameState.units);
+			this.emitToGame(game,'changes',{units:game.game.gameState.units});
 			this._fullSyncKeyFrame = Date.now();
 		} else {
 			//TODO try volitile for not full sync long polling perf
@@ -256,7 +256,8 @@ var server = {
 		//prolly a better way than looping but this is ok for now i hope.
 		if(game.clients && Object.keys(game.clients).length){
 			Object.keys(game.clients).forEach(function(id,v) {
-				if(exclude[id]) return;
+				//kinda lame that you can only exclude one id
+				if(exclude == id) return;
 				var socket = game.clients[id];
 				socket.emit(ev, data);
 			});

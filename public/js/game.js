@@ -103,10 +103,10 @@ _game = game = {
 		, kup = function(e){
 					console.log(e.keyCode);
 			e.preventDefault()
-			if(e.keyCode == 68){toggleValue(game.scout);game.scout.set()}
+			if(e.keyCode == 68){toggleValue(z.scout);z.scout.set()}
 			if (!_.include(keys, e.keyCode)){return false}
-			if (e.keyCode > 48 && e.keyCode < 58){game.fluxCapacity.set((e.keyCode-48)*10);return}
-			if (e.keyCode == 48){game.fluxCapacity.set(100);return}
+			if (e.keyCode > 48 && e.keyCode < 58){z.fluxCapacity.set((e.keyCode-48)*10);return}
+			if (e.keyCode == 48){z.fluxCapacity.set(100);return}
 			var code = e.which||e.keyCode;
 			z.socket.emit("event", "key", code, z.mouse_coordinates);
 		}
@@ -114,7 +114,7 @@ _game = game = {
 			var xcoord = (e.clientX - parseInt(vp.css("left")));
 			var ycoord = (e.clientY - parseInt(vp.css("top")));
 			parseInt(vp.css("left")) + (e.clientX - winx/2)
-			z.socket.emit("event", "click", z.cmds.click, [xcoord,ycoord], this.fluxCapacity.get);
+			z.socket.emit("event", "click", z.cmds.click, [xcoord,ycoord], z.fluxCapacity.get);
 			$('#viewPort').css({left: parseInt(vp.css("left")) - (e.clientX - winx/2), top: parseInt(vp.css("top")) - (e.clientY - winy/2)})
 		}
 		, getDelta = function(e){
@@ -122,10 +122,10 @@ _game = game = {
 			var delta=evt.detail? evt.detail*(-120) : evt.wheelDelta
 			$('#msg').empty().append("DELTA = "+delta);
 			if (delta > 0){
-				game.fluxCapacity.set(game.fluxCapacity.get+5);
+				z.fluxCapacity.set(z.fluxCapacity.get+5);
 			}
 			if (delta < 0){
-				game.fluxCapacity.set(game.fluxCapacity.get-5);
+				z.fluxCapacity.set(z.fluxCapacity.get-5);
 			}
 		}
 		$(document).bind('keyup',kup);
@@ -173,7 +173,6 @@ _game = game = {
 			
 			console.log('event!',a,b,c,r);
 			/*
-
 			$('#msg').empty().append("event type: "+a+"<br>Command: "+b+"<br>At Coordinate: "+c[0]+","+c[1]);
 			if (b = 32){
 				z.draw.energyWave(c[0],c[1],r)
@@ -185,8 +184,11 @@ _game = game = {
 		});
 		
 		socket.on('changes',function(changes){
-			$.each(changes,function(k,unit){
-				z.gameState.units[unit.id] = unit;
+			console.log('CHANGES ',changes);
+			$.each(changes,function(type,changes){
+				$.each(changes,function(i,changed){
+					z.gameState[type][changed.id] = changed;
+				});
 			});
 		});
 		
