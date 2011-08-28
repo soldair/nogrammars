@@ -53,7 +53,7 @@ _game = game = {
 		}
 	},
 	new_unit: function(type, _id, x, y){
-
+		/*
 		if (type = 1){ //type one = saucer
 			var _id = 123; 
 			game[_id] = paper.set();
@@ -61,6 +61,7 @@ _game = game = {
 					paper.circle(xy, y, 20).attr({"fill":"purple","stroke":"yellow","stroke-width":3})
 				)
 		}
+		*/
 		/*
 		if (type = 2){
 			
@@ -281,6 +282,7 @@ _game = game = {
 			if(!_game.renderState.units[_id]) _game.renderState.units[_id] = {};
 			
 			var serverData = _game.gameState.units[_id]
+			,paper = this.paper
 			,c1 = serverData.position
 			,c2 = serverData.destination
 			//uses isMoving to know when to rotate
