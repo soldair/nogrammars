@@ -251,14 +251,14 @@ _game = game = {
 			$.each(serverData.units,function(k,unit){
 				//is rendered?
 				if(!z.isUnitRendered(unit.id)){
-
-					z.draw.drawUnit(unit.position[0],unit.position[1],unit.id);
+					//TODO UPDATE THIS TO DRAW UNIT
+					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
 
 				} else if(unit.position[0] != unit.destination[0] || unit.position[1] != unit.destination[1]){
 					
 					//apply delta
 					unit.position = z.math.moveToward(unit.position,unit.destination,math.floor(unit.speed/factor));
-					z.draw.drawUnit(unit.position[0],unit.position[1],unit.id);
+					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
 					
 				}
 			});
