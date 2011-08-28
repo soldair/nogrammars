@@ -18,12 +18,12 @@ function t(){
 	}
 }
 var mouse_coordinates=[0,0]
-$(window).mousemove(function(e){
-	mouse_coordinates = [e.pageX, e.pageY]
-});
 var winx=window.innerWidth,
 winy=window.innerHeight,
 commander = Raphael("command", winx, winy);
+$(window).mousemove(function(e){
+	mouse_coordinates = [e.pageX, e.pageY]
+});
 var bod = commander.set(),
 	bg = commander.rect(0,0,winx, winy).attr({fill:"rgba(0,0,0,0)"});
 function graph(){
@@ -61,10 +61,12 @@ var e = {
 		var b = y - (m*x);
 		return [m,b]
 	},
-	energyWave:function(x,y,r){
+	energyWave:function(x,y,r,team){
+		if (team == "purple"){ var tcolor = "purple"}
+		if (team == "yellow"){var tcolor = "rgba(47,208,63,.2):80"}
 		var mb = this.linear(0,winy,x,y)
 		,z = (mb[0]*5000) + mb[1];
-		commander.circle(0,this.winy,r).attr({"stroke-width":0,"fill":"rrgba(138,211,242,1)-rgba(68,68,68,0)"}).animate({"cx":5000,"cy":z,"r":r*100,"opcaity":0,"fill-opacity":0},747)
+		commander.circle(0,winy,r).attr({fill:"r#333-"+tcolor+"-#333","stroke-width":0, "fill-opacity":.1}).animate({"cx":5000,"cy":z,"r":r*100,"opcaity":0,"fill-opacity":0},3000)
 	},
 	drawUnit:function (x,y,_id,team, shield,eRad){
 		if (team == "purple"){ var tcolor = "purple", fcolor =.66}
@@ -80,57 +82,18 @@ var e = {
 
 		setInterval(function(){e[_id].rotate(60)},100);
 	},
-	moveToward:function(c1,c2,distance,constrain) {
-
-		var slope = this.slope(c1,c2)
-		,x = distance-slope
-		,y = slope*x;
-		
-		//apply direction
-		if(c1[0] > c2[0]) x = -x;
-		if(c1[1] > c2[1]) y = -y;
-		
-		var c3 =[c1[0]+x,c1[1]+y];
-		
-		if(constrain !== false){
-			//stop movement at desired location
-			if(x > 0){//moving right
-				if(c3[0]>c2[0]) c3[0] = c2[0];
-			} else {//moving left
-				if(c3[0]<c2[0]) c3[0] = c2[0];
-			}
-			if(y > 0){//up
-				if(c3[1]>c2[1]) c3[1] = c2[1];
-			} else {//down
-				if(c3[1]<c2[1]) c3[1] = c2[1];
-			}
-		}
-		return c3;
-	},
 	slope:function(c1,c2){
 		return (c1[1]-c2[1])/(c1[0]-c2[0]);
 	},
 	event_emitter: function(){
 		var z = this
-		, click_fn = function(e){
-			console.log(e);
-			this.energyWave(mouse_coordinates[0],mouse_coordinates[1],3);
-		}
-		, getDelta = function(e){
-			var evt=window.event || e;
-			var delta=evt.detail? evt.detail*(-120) : evt.wheelDelta
-			if (delta > 0){
-				
-			}
-			if (delta < 0){
-				
-			}
+		, click_fn = function(ev){
+			console.log(ev);
+			z.energyWave(mouse_coordinates[0],mouse_coordinates[1],3, "purple");
 		}
 		$('#command').bind('click',click_fn);
-		var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel"
-		document.addEventListener(mousewheelevt, getDelta, false)
-	},
-} 
+	}
+}; e.event_emitter();
 e.drawUnit(100,100,"tl", "yellow");
 e.drawUnit(winx-100,100,"tr", "purple");
 e.drawUnit(100,winy-100,"bl", "purple");
@@ -138,8 +101,7 @@ e.drawUnit(winx-100,winy-100,"br", "yellow");
 
 var finito = [[]];
 
-var fPath = commander.path("M100 100 "+(winx-100)+" 100 "+(winx-100)+" "+(winy-100)+" 100 "+(winy-100)+"z").attr({stroke:"transparent"})
-
+//var fPath = commander.path("M100 100 "+(winx-100)+" 100 "+(winx-100)+" "+(winy-100)+" 100 "+(winy-100)+"z").attr({stroke:"transparent"})
 commander.text(winx/2,winy/2,"FINITO").attr({"font-size":133, fill:"#333", "stroke":"rgba(252,244,6,.1)", "stroke-width":5})
 //paper.print(100, 100, "Test string", paper.getFont("Times", 800), 30);
 
