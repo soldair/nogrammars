@@ -24,7 +24,7 @@ _game = game = {
 	mouse_coordinates:[0,0],
 	gameId:0,//your game
 	beatCbs:[],
-	clientIntervalTime:50,
+	clientIntervalTime:25,
 	heartBeatInterval:null,
 	viewPort:null,
 	gameState:{
@@ -225,8 +225,13 @@ _game = game = {
 		//(server interval/my interval)
 		var z = this;
 		z.heartBeatInterval = setInterval(function(){
+			try{
 			for(var i=0,j=z.beatCbs.length;i<j;i++){
 				z.beatCbs[i](z.gameState);
+			}
+			} catch (e) {
+				console.error(e);
+				console.warn('ERROR IN HEARTBEAT. stopping game loop');
 			}
 		},z.clientIntervalTime);
 	},
