@@ -53,7 +53,7 @@ _game = game = {
 	},
 	my_energy: 66, // it is 5:17 am after all
 	fluxCapacity:{
-		get:0, 
+		get:66, 
 		set : function(x){
 			var y = x;
 			if (x > 100){
@@ -111,10 +111,11 @@ _game = game = {
 			z.socket.emit("event", "key", code, z.mouse_coordinates);
 		}
 		, click_fn = function(e){
-			var xcoord = e.clientX - parseInt(vp.css("left");
-			var ycoord = e.clientY - parseInt(vp.css("top"));
-			z.socket.emit("event", "click", z.cmds.click, [xcoord,ycoord]);
-			//$('#viewPort').css({left: parseInt(vp.css("left"))-(z.mouse_coordinates[0]-winx/2), top: parseInt(vp.css("top"))+(z.mouse_coordinates[1]-winy/2)})
+			var xcoord = (e.clientX - parseInt(vp.css("left")));
+			var ycoord = (e.clientY - parseInt(vp.css("top")));
+			parseInt(vp.css("left")) + (e.clientX - winx/2)
+			z.socket.emit("event", "click", z.cmds.click, [xcoord,ycoord], this.fluxCapacity.get);
+			$('#viewPort').css({left: parseInt(vp.css("left")) - (e.clientX - winx/2), top: parseInt(vp.css("top")) - (e.clientY - winy/2)})
 		}
 		, getDelta = function(e){
 			var evt=window.event || e;
@@ -407,7 +408,7 @@ _game.draw = {
 		};
 		this.paper = Raphael('viewPort', width, height);
 		this.commander = Raphael('console', this.winx, this.winy);
-		
+		game.fluxCapacity.set(66)
 	},
 	graph:function(){
 		
