@@ -29,10 +29,7 @@ _game = game = {
 
 		//after set gameId
 		this.socketInit();
-		this.draw.yellowBase(300,300,200,200);
-		this.draw.purpleBase(600,300,200,200);
-		this.draw.myEnergyMeter(66); // param  = % energy
-		//this.fluxCapacity.set(40); // probably not a percentage of energy, but a unit value
+
 	},
 	cmds:{
 		click: "fire",
@@ -130,6 +127,10 @@ _game = game = {
 		socket.on('sync', function(state){
 			z.gameState = state;
 			z.paper();
+			z.draw.yellowBase(300,300,200,200);
+			z.draw.purpleBase(600,300,200,200);
+			z.draw.myEnergyMeter(66); // param  = % energy
+			//this.fluxCapacity.set(40); // probably not a percentage of energy, but a unit value
 			z.loading(false);
 			z.setBeats();
 			z.checkHeartBeat();
