@@ -28,7 +28,7 @@ _game = game = {
 	heartBeatInterval:null,
 	viewPort:null,
 	gameState:{
-		serverIntervalTime:100,
+		serverIntervalTime:200,
 		units:{}
 	},
 	renderState:{
@@ -92,7 +92,7 @@ _game = game = {
 			var y = e.screenY;
 			var xzoom = -(x/winx)*(w)+w/2;
 			var yzoom = -(y/winy)*(h)+h/2;
-			console.log(w);
+			//console.log(w);
 				vp.css({
 				left : xzoom, top: yzoom});
 		});
@@ -191,7 +191,7 @@ _game = game = {
 				//console.log(ch);
 				$.each(ch,function(i,changed){
 					z.gameState[type][changed.id] = changed;
-					console.info("server change: ",type+' > ',z.gameState[type][changed.id]);
+					//console.info("server change: ",type+' > ',z.gameState[type][changed.id]);
 				});
 			});
 		});
@@ -262,7 +262,9 @@ _game = game = {
 		var z = this;
 		//unit movement
 		this.onBeat(function(serverData){
-			var translationFactor = serverData.serverIntervalTime/serverData.clientIntervalTime;
+			
+			var translationFactor = z.gameState.serverIntervalTime/z.clientIntervalTime;
+			
 			//this will be optimzed to only loop changed.
 
 			$.each(serverData.units,function(k,unit){
@@ -285,9 +287,10 @@ _game = game = {
 					if(unit.position[0] === null) {//shouldnt happen
 						unit.position = [unit.destination[0],unit.destination[1]];
 					}
+					
 					//apply delta
-					var p = z.math.moveToward(unit.position,unit.destination,unit.speed/translationFactor);
-					console.log('next position ',p);
+					
+					var p = z.math.moveToward(unit.position,unit.destination,(unit.speed||1)/translationFactor);
 					z.draw.drawShip(p[0],p[1],unit.id);
 					
 				}
@@ -385,10 +388,8 @@ _game.math = {
 		var slope = this.slope(c1,c2)
 		c3 = [c1[0],c1[1]];
 		
-		console.log(c1,c2,'slope ',slope);
-		
-		if(!slope) {
-			c3 = [];
+		if(!slope || isNaN(slope)) {
+
 			if(c1[0] == c2[0]) {
 				c3[1] +=distance;
 			} else {
@@ -410,8 +411,6 @@ _game.math = {
 		if(c1[1] > c2[1]) y = -y;
 		
 		c3 =[c1[0]+x,c1[1]+y];
-		
-		console.log(x,y);
 		
 		if(constrain !== false){
 			//stop movement at desired location
@@ -557,8 +556,6 @@ _game.draw = {
 		//set to empty object just in case we want to attach different render specific data like rotation
 		if(!_game.renderState.units[_id]) _game.renderState.units[_id] = {};
 		
-		console.log('drawShip ',x,y);
-		
 		var serverData = _game.gameState.units[_id]
 		,paper = this.paper
 		,c1 = serverData.position
@@ -596,6 +593,7 @@ _game.draw = {
 			// apply movement translated from last rendered position to current
 			renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1]);
 			//renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1],1);
+			renderState.position = c1;
 			
 		}
 		

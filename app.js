@@ -264,7 +264,7 @@ var server = {
 		}
 	},
 	emitToGame:function(game,ev,data,options){
-		console.log('emit to game!! ',ev,' ',data);
+		//console.log('emit to game!! ',ev,' ',data);
 		var exclude = {};
 		if(options) exclude = options.exclude||{};
 		//prolly a better way than looping but this is ok for now i hope.
