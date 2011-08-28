@@ -148,10 +148,12 @@ var server = {
 		,g = this.games[gameId];
 		
 		if(!g){
-			g = {
+			this.games[gameId] = {
 				clients:{},
 				game:new gameCore.game(gameId)
 			};
+			
+			g = this.games[gameId];
 			
 			g.game.onChangeCb = function(changes){
 				z.emitChanges(z.games[gameId],changes);
