@@ -31,7 +31,7 @@ var game = {
 	},
 	init : function(){
 		var z = this;
-		$('#console').mousemove(function(e){
+		$(window).mousemove(function(e){
 			z.mouse_coordinates = [e.pageX, e.pageY]
 		});
 		this.event_emitter(); 
@@ -121,10 +121,10 @@ var game = {
 			z.socket.emit("event", "key", code, z.mouse_coordinates);
 		}
 		, click_fn = function(e){
-			console.log(e)
-			console.log(z.mouse_coordinates);
+			console.log(parseInt(vp.css("left")));
 			z.socket.emit("event", "click", z.cmds.click, z.mouse_coordinates);
-			$('#viewPort').css({left: vpleft+(z.mouse_coordinates[0]-winx/2), top: vptop+(z.mouse_coordinates[1]-winy/2)})
+			$('#viewPort').css({left: parseInt(vp.css("left"))-(z.mouse_coordinates[0]-winx/2), top: parseInt(vp.css("top"))-(z.mouse_coordinates[1]-winy/2)})
+			console.log(parseInt(vp.css("left")));
 		}
 		, getDelta = function(e){
 			var evt=window.event || e;
