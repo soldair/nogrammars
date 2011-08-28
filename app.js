@@ -183,11 +183,13 @@ var server = {
 			playerData = game.createPlayer(clientId);
 		}
 
+		var gameState = g.game.gameState;
+
 		//TODO ENSURE player data support on client
-		z.emitToGame(g,'joined',{id:clientId,reconnected:reconnected,player:playerData});
+		z.emitToGame(g,'joined',{id:clientId,reconnected:reconnected,player:playerData,players:gameState.players,teams:gameState.teams},{exclude:clientId});
 
 		//sync current game state to current user
-		socket.emit(this.games[gameId],'sync',{state:this.games[gameId].game.gameState,clientId:clientId});
+		socket.emit('sync',{state:gameState,clientId:clientId});
 
 		return gameId;
 	},
@@ -214,6 +216,8 @@ var server = {
 
 		var game = z.games[z.clients[id].game];
 
+		
+		
 		delete game.clients[id];
 		if(Object.keys(game.clients).length == 0) {
 			
@@ -222,11 +226,12 @@ var server = {
 			console.log(Object.keys(z.games).length,' games remaining');
 			
 		} else if(game.game && Object.keys(game.game.units).length){
-
-			game.game.deleteUnitsByOwner(id);
+			game.game.deletePlayer(id);
+			// the above also does this. game.game.deleteUnitsByOwner(id);
 
 		}
-
+		
+		
 		delete z.clients[id];
 		console.log('deleted client ',id,' ',Object.keys(z.clients).length,' clients remaining');;
 		//player abandon broadcast
@@ -244,11 +249,14 @@ var server = {
 			this.emitToGame(game,'changes',changes);
 		}
 	},
-	emitToGame:function(game,ev,data){
+	emitToGame:function(game,ev,data,options){
 		console.log('emit to game!! ',ev,' ',data);
+		var exclude = {};
+		if(options) exclude = options.exclude||{};
 		//prolly a better way than looping but this is ok for now i hope.
 		if(game.clients && Object.keys(game.clients).length){
 			Object.keys(game.clients).forEach(function(id,v) {
+				if(exclude[id]) return;
 				var socket = game.clients[id];
 				socket.emit(ev, data);
 			});
