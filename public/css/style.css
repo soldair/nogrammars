@@ -1,5 +1,6 @@
 body{
 	background:#333;
+	overflow:hidden;
 }
 #viewPort{
 	position:fixed;
@@ -15,4 +16,18 @@ body{
 	position:fixed;
 	right:100px;
 	top:100px;
+}
+#console{
+	position:fixed;
+	left:0;
+	top:0;
+	margin:0;
+	padding:0;
+}
+#command{
+	position:fixed;
+	left:0;
+	top:0;
+	margin:0;
+	padding:0;
 }
