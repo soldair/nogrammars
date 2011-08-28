@@ -186,10 +186,10 @@ _game = game = {
 		});
 		
 		socket.on('changes',function(changes){
-			console.log('CHANGES ',changes);
-			$.each(changes,function(type,changes){
-				$.each(changes,function(i,changed){
-					console.log('type ',type);
+			//console.log('CHANGES ',changes);
+			$.each(changes,function(type,ch){
+				//console.log(ch);
+				$.each(ch,function(i,changed){
 					z.gameState[type][changed.id] = changed;
 					console.info("server change: ",type+' > ',z.gameState[type][changed.id]);
 				});
@@ -273,15 +273,18 @@ _game = game = {
 						_game.draw.myEnergyMeter(unit.energy/10);
 					}
 				}
+				
 				if(!z.isUnitRendered(unit.id)){
 					console.log('DRAW SHIP');
 					//TODO UPDATE THIS TO DRAW UNIT
 					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
 
 				} else if(unit.position[0] != unit.destination[0] || unit.position[1] != unit.destination[1]){
+
 					
 					//apply delta
-					unit.position = z.math.moveToward(unit.position,unit.destination,Math.floor(unit.speed/translationFactor));
+					var badp = z.math.moveToward(unit.position,unit.destination,Math.floor(unit.speed/translationFactor));
+					console.log(badp);
 					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
 					
 				}
@@ -529,6 +532,8 @@ _game.draw = {
 		//set to empty object just in case we want to attach different render specific data like rotation
 		if(!_game.renderState.units[_id]) _game.renderState.units[_id] = {};
 		
+		console.log('drawShip ',x,y);
+		
 		var serverData = _game.gameState.units[_id]
 		,paper = this.paper
 		,c1 = serverData.position
@@ -558,8 +563,12 @@ _game.draw = {
 			renderState.position = c1;
 			renderState.rotate = 0;
 		} else {
+			console.log('translate: ',renderState.position[0]-c1[0],renderState.position[1]-c1[1]);
+			//console.log(renderState.position);
+			//console.log(serverData.position);
 			// apply movement translated from last rendered position to current
-			renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[2]);
+			//renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1]);
+			renderState.object.animate({cx:renderState.position[0],cy:renderState.position[1]},1);
 		}
 		
 		if(isMoving){

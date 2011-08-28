@@ -168,6 +168,16 @@ var server = {
 			g = this.games[gameId];
 			
 			g.game.onChangeCb = function(changes){
+				
+				if(changes.units && changes.units.length){
+					if(isNaN(changes.units[0].position[0])){
+						throw "SERVER SIDE!!";
+					}
+				}
+				if(changes.units && changes.units.length == 0) {
+					throw new Error('caught you!');
+					return;
+				}
 				z.emitChanges(z.games[gameId],changes);
 			};
 			
@@ -254,7 +264,11 @@ var server = {
 		if(this._fullSyncKeyFrame+this.fullSyncKeyFrame < Date.now()){
 			this.emitToGame(game,'changes',{units:game.game.gameState.units});
 			this._fullSyncKeyFrame = Date.now();
-		} else {
+			delete changes.units;
+			if(!Object.keys(changes).length) changes = false;
+		}
+		
+		if(changes){
 			//TODO try volitile for not full sync long polling perf
 			this.emitToGame(game,'changes',changes);
 		}
