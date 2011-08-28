@@ -121,7 +121,7 @@ var game = {
 			z.socket.emit("event", "key", code, z.mouse_coordinates);
 		}
 		, click_fn = function(e){
-			console.log(parseInt(vp.css("left")));
+			console.log(e);
 			z.socket.emit("event", "click", z.cmds.click, z.mouse_coordinates);
 			$('#viewPort').css({left: parseInt(vp.css("left"))-(z.mouse_coordinates[0]-winx/2), top: parseInt(vp.css("top"))-(z.mouse_coordinates[1]-winy/2)})
 			console.log(parseInt(vp.css("left")));

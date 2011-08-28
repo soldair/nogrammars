@@ -1,6 +1,7 @@
 body{
 	background:#333;
 	overflow:hidden;
+	cursor:crosshair;
 }
 #viewPort{
 	position:fixed;
