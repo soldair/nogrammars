@@ -52,9 +52,15 @@ var server = {
 		app.get('/game/:id',function(req,res){
 			//NOTE should be set on all routes
 			res.cookie('io.sid', req.sessionID, {httpOnly:false,path:'/',maxAge:864000000});
-			res.render('index', { layout: false});
+			res.render('game', { layout: false});
 		});
 
+		app.get('/draw',function(req,res){
+			//NOTE should be set on all routes
+			res.cookie('io.sid', req.sessionID, {httpOnly:false,path:'/',maxAge:864000000});
+			res.render('draw', { layout: false});
+		});
+		
 	},
 	socketio:function(){
 		var z = this
