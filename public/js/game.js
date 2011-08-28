@@ -31,8 +31,8 @@ var game = {
 		this.setGameId();
 		//after set gameId
 		this.socketInit();
-		this.draw.yellowBase(300,300,200,200);
-		this.draw.purpleBase(600,300,200,200);
+		this.draw.yellowBase(300,1290,200,200);
+		this.draw.purpleBase(3700,1290,200,200);
 		this.draw.myEnergyMeter(88); // param  = % energy
 		this.fluxCapacity.set(80); // probably not a percentage of energy, but a unit value
 	},
@@ -89,13 +89,14 @@ var game = {
 		var rx = w/winx;
 		var ry = h/(winy)
 		$("#console").mousemove(function(e){
-			var x = e.pageX;
-			var y = e.pageY;
+			var x = e.screenX;
+			var y = e.screenY;
+			var xzoom = -(x/winx)*(w)+w/3;
+			var yzoom = -(y/winy)*(h)+h/3;
+			console.log(w);
 				vp.css({
-				left : x*(1 - rx)});
-				vp.css({
-				top  : y*(1 - ry)});
-			});
+				left : xzoom, top: yzoom});
+		});
 	}},
 	event_emitter: function(){
 		var z = this,
@@ -158,7 +159,7 @@ var game = {
 		                this.ellipse(x, y, r, r).attr({stroke: "none", fill: "r#ccc-#ccc", opacity: 0})
 		            );
 		        };
-		this.draw.paper = Raphael('viewPort', 5000, 2000);
+		this.draw.paper = Raphael('viewPort', 4000, 2500);
 		this.draw.graph();
 		this.draw.commander = Raphael('console',winx,winy );
 		
@@ -195,9 +196,9 @@ var game = {
 			for (i=0; i < w; i+=50){
 				paper.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
 			}
-			
-			paper.circle(2500,1000,2400).attr({"fill":"transparent", "stroke-width":10});
-			vp.css({left:-1500,top:cy});			
+			$('#viewPort').css({left: cx+'px', top: cy-50+'px'})
+			//paper.circle(2500,1000,2400).attr({"fill":"transparent", "stroke-width":10});
+			//vp.css({left:-1500,top:cy});			
 		},
 		energyWave:function(x,y,r,_id){
 			var _id = 123
