@@ -269,7 +269,7 @@ _game = game = {
 				} else if(unit.position[0] != unit.destination[0] || unit.position[1] != unit.destination[1]){
 					
 					//apply delta
-					unit.position = z.math.moveToward(unit.position,unit.destination,math.floor(unit.speed/factor));
+					unit.position = z.math.moveToward(unit.position,unit.destination,Math.floor(unit.speed/translationFactor));
 					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
 					
 				}
