@@ -3,7 +3,7 @@
   , "version": "0.0.0"
   , "description": "knockout 2011 baby! game time"
   , "author": "Ryan Day <soldair@gmail.com>, Jonathon Anthony <jonathon@nationalheadquarters.org>"
-  , "dependencies": { "express":"2.4.x","nko":">=0.1.1", "socket.io": "0.7.x" , "jade": "0.15.2"}
+  , "dependencies": { "express":"2.4.x","nko":">=0.1.1", "socket.io": "0.7.x" , "jade": "0.15.x","hashlib":"1.0.x"}
   , "devDependencies": { "should": ">= 0.0.1" }
   , "main": "app.js"
   , "engines": { "node": ">=0.4.x" }
