@@ -66,7 +66,7 @@ var e = {
 		if (team == "yellow"){var tcolor = "rgba(47,208,63,.2):80"}
 		var mb = this.linear(0,winy,x,y)
 		,z = (mb[0]*5000) + mb[1];
-		commander.circle(0,winy,r).attr({fill:"r#333-"+tcolor+"-#333","stroke-width":0, "fill-opacity":.1}).animate({"cx":5000,"cy":z,"r":r*100,"opcaity":0,"fill-opacity":0},3000)
+		commander.circle(100,winy-100,r).attr({fill:"r#333-"+tcolor+"-#333","stroke-width":0, "fill-opacity":.1}).animate({"cx":5000,"cy":z,"r":r*100,"opcaity":0,"fill-opacity":0},3000)
 	},
 	drawUnit:function (x,y,_id,team, shield,eRad){
 		if (team == "purple"){ var tcolor = "purple", fcolor =.66}
@@ -102,6 +102,9 @@ e.drawUnit(winx-100,winy-100,"br", "yellow");
 var finito = [[]];
 
 //var fPath = commander.path("M100 100 "+(winx-100)+" 100 "+(winx-100)+" "+(winy-100)+" 100 "+(winy-100)+"z").attr({stroke:"transparent"})
-commander.text(winx/2,winy/2,"FINITO").attr({"font-size":133, fill:"#333", "stroke":"rgba(252,244,6,.1)", "stroke-width":5})
+commander.text(winx/2,winy/2.8,"FINITO").attr({"font-size":133, fill:"#333", "stroke":"rgba(252,244,6,.1)", "stroke-width":5})
+commander.text(winx/2,winy/2	,"~or~").attr({"font-size":30, fill:"#333", "stroke":"rgba(252,244,6,.1)", "stroke-width":1})
+commander.text(winx/2,winy/1.65	,"Thanks for Playing").attr({"font-size":87, fill:"#333", "stroke":"rgba(252,244,6,.1)", "stroke-width":5})
 //paper.print(100, 100, "Test string", paper.getFont("Times", 800), 30);
 
+$("body").append("<h1 style='color:white;position:fixed;bottom:0;right:0;'>try <a style='color:orange;' href='/game/11'>game 11</a> sadly time has run out</h1>");
