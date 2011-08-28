@@ -49,7 +49,7 @@ _game = game = {
 		this.socketInit();
 	},
 	cmds:{
-		click: "fire",
+		click: "move",
 	},
 	my_energy: 66, // it is 5:17 am after all
 	fluxCapacity:{
@@ -114,8 +114,11 @@ _game = game = {
 			var xcoord = (e.clientX - parseInt(vp.css("left")));
 			var ycoord = (e.clientY - parseInt(vp.css("top")));
 			parseInt(vp.css("left")) + (e.clientX - winx/2)
-			z.socket.emit("event", "click", z.cmds.click, [xcoord,ycoord], z.fluxCapacity.get);
-			$('#viewPort').css({left: parseInt(vp.css("left")) - (e.clientX - winx/2), top: parseInt(vp.css("top")) - (e.clientY - winy/2)})
+			if(z.playerId) {
+				z.socket.emit("event", {client:z.playerId,type:"click", command:z.cmds.click, coords:[xcoord,ycoord],energy: z.fluxCapacity.get});
+			}
+			//just set it to animate as a temp thing because the jumping hurts my eyes.
+			$('#viewPort').animate({left: parseInt(vp.css("left")) - (e.clientX - winx/2), top: parseInt(vp.css("top")) - (e.clientY - winy/2)},500)
 		}
 		, getDelta = function(e){
 			var evt=window.event || e;
