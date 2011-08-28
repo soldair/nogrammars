@@ -1,7 +1,6 @@
 body{
 	background:#333;
 	overflow:hidden;
-	cursor:crosshair;
 }
 #viewPort{
 	position:fixed;
@@ -31,4 +30,9 @@ body{
 	top:0;
 	margin:0;
 	padding:0;
+}
+#link{
+	z-index:100;
+	width:650px;
+	font-size:30px;
 }

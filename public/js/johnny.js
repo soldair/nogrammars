@@ -102,6 +102,8 @@ e.drawUnit(winx-100,winy-100,"br", "yellow");
 var finito = [[]];
 
 //var fPath = commander.path("M100 100 "+(winx-100)+" 100 "+(winx-100)+" "+(winy-100)+" 100 "+(winy-100)+"z").attr({stroke:"transparent"})
-commander.text(winx/2,winy/2,"FINITO").attr({"font-size":133, fill:"#333", "stroke":"rgba(252,244,6,.1)", "stroke-width":5})
+commander.text(winx/2,winy/2.8,"FINITO").attr({"font-size":133, fill:"#333", "stroke":"rgba(252,244,6,.25)", "stroke-width":5})
+commander.text(winx/2,winy/2	,"~or~").attr({"font-size":30, fill:"#333", "stroke":"rgba(252,244,6,.5)", "stroke-width":1})
+commander.text(winx/2,winy/1.65	,"Really Like Just The Beginning").attr({"font-size":67, fill:"#333", "stroke":"rgba(252,244,6,.25)", "stroke-width":3})
 //paper.print(100, 100, "Test string", paper.getFont("Times", 800), 30);
 
