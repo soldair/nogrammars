@@ -481,7 +481,7 @@ _game.draw = {
 	},
 	drawShip:function (x,y,_id){
 		//set to empty object just in case we want to attach different render specific data like rotation
-		if(!this.renderState.units[_id]) this.renderState.units[_id] = {};
+		if(!_game.renderState.units[_id]) _game.renderState.units[_id] = {};
 		
 		var serverData = _game.gameState.units[_id]
 		,paper = this.paper
