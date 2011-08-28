@@ -38,7 +38,7 @@ _game = game = {
 	init : function(){
 		var z = this;
 		z.viewPort = $('#viewPort').mousemove(function(e){
-			z.mouse_coordinates = [e.pageX, e.pageY]
+			z.mouse_coordinates = [e.clientX, e.clientY]
 		});
 		this.event_emitter();
 		//set loader until server reports game state
@@ -90,8 +90,8 @@ _game = game = {
 		$("#console").mousemove(function(e){
 			var x = e.screenX;
 			var y = e.screenY;
-			var xzoom = -(x/winx)*(w)+w/3;
-			var yzoom = -(y/winy)*(h)+h/3;
+			var xzoom = -(x/winx)*(w)+w/2;
+			var yzoom = -(y/winy)*(h)+h/2;
 			console.log(w);
 				vp.css({
 				left : xzoom, top: yzoom});
@@ -111,13 +111,10 @@ _game = game = {
 			z.socket.emit("event", "key", code, z.mouse_coordinates);
 		}
 		, click_fn = function(e){
-			console.log('left before: ',z.viewPort.css("left"));
+			console.log(e)
+			console.log(parseInt(vp.css("left")));
 			z.socket.emit("event", "click", z.cmds.click, z.mouse_coordinates);
-			$('#viewPort').css({
-				left: parseInt(z.viewPort.css("left").replace('px',''))-(z.mouse_coordinates[0]-z.winx/2), 
-				top: parseInt(z.viewPort.css("top").replace('px',''))-(z.mouse_coordinates[1]-z.winy/2)
-			})
-			console.log('left after: ',z.viewPort.css("left"));
+			$('#viewPort').css({left: parseInt(vp.css("left"))+(z.mouse_coordinates[0]-winx/2), top: parseInt(vp.css("top"))+(z.mouse_coordinates[1]-winy/2)})
 		}
 		, getDelta = function(e){
 			var evt=window.event || e;
@@ -131,7 +128,7 @@ _game = game = {
 			}
 		}
 		$(document).bind('keyup',kup);
-		$(window).bind('click',click_fn);
+		$('#console').bind('click',click_fn);
 		var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel"
 		document.addEventListener(mousewheelevt, getDelta, false)
 	},
