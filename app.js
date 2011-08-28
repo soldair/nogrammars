@@ -150,7 +150,9 @@ var server = {
 		if(!g){
 			this.games[gameId] = {
 				clients:{},
-				game:new gameCore.game(gameId)
+				//TODO TEAM SETTINGS
+				//NOTE refactor create game.. chicken and the egg .. need a game to join a user
+				game:new gameCore.game(gameId,{teams:2})
 			};
 			
 			g = this.games[gameId];
@@ -165,18 +167,27 @@ var server = {
 			};
 		}
 
-		z.emitToGame(g,'joined',{id:clientId,reconnected:reconnected});
 
 		g.clients[clientId] = socket;
 		
-		//TODO fix extra units
+
 		if(g && g.game && !reconnected) {
 			//THIS IS where i make the first unit. this is not really a good place for this call but it'll do for 5:42 am
 			g.game.createUnit('ship',[+(Math.random()+'').substr(2,3),30],clientId);
+
 		}
+
+		var playerData = {};
 		
-		//sync current game state
-		z.emitToGame(this.games[gameId],'sync',{state:this.games[gameId].game.gameState,clientId:clientId});
+		if(!playerData){
+			playerData = game.createPlayer(clientId);
+		}
+
+		//TODO ENSURE player data support on client
+		z.emitToGame(g,'joined',{id:clientId,reconnected:reconnected,player:playerData});
+
+		//sync current game state to current user
+		socket.emit(this.games[gameId],'sync',{state:this.games[gameId].game.gameState,clientId:clientId});
 
 		return gameId;
 	},
