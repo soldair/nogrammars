@@ -111,8 +111,8 @@ _game = game = {
 			z.socket.emit("event", "key", code, z.mouse_coordinates);
 		}
 		, click_fn = function(e){
-			var xcoord = e.clientX - parseInt((vp.css("left"));
-			var ycoord = e.clientY - parseInt(vp.css("top"));
+			var xcoord = (e.clientX - parseInt(vp.css("left")));
+			var ycoord = (e.clientY - parseInt(vp.css("top")));
 			z.socket.emit("event", "click", z.cmds.click, [xcoord,ycoord]);
 			//$('#viewPort').css({left: parseInt(vp.css("left"))-(z.mouse_coordinates[0]-winx/2), top: parseInt(vp.css("top"))+(z.mouse_coordinates[1]-winy/2)})
 		}
