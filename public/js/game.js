@@ -1,6 +1,15 @@
 var socket = io.connect(),
 winx=window.innerWidth,
 winy=window.innerHeight;
+var w = $('#viewPort').width();
+var h = $('#viewPort').height();
+var vp =  $('#viewPort');
+var vpleft = parseInt(vp.css("left"));
+var vptop = parseInt(vp.css("top"));
+var cx = (winx-w)/2;
+var cy = (winy-h)/2;
+var rx = w/winx;
+var ry = h/(winy)
  socket.on('connect', function () {
    console.log('connection made')
  });
@@ -22,7 +31,7 @@ var game = {
 	},
 	init : function(){
 		var z = this;
-		$('#viewPort').mousemove(function(e){
+		$('#console').mousemove(function(e){
 			z.mouse_coordinates = [e.pageX, e.pageY]
 		});
 		this.event_emitter(); 
@@ -113,7 +122,9 @@ var game = {
 		}
 		, click_fn = function(e){
 			console.log(e)
-			z.socket.emit("event", "click", z.cmds.click, z.mouse_coordinates)
+			console.log(z.mouse_coordinates);
+			z.socket.emit("event", "click", z.cmds.click, z.mouse_coordinates);
+			$('#viewPort').css({left: vpleft+(z.mouse_coordinates[0]-winx/2), top: vptop+(z.mouse_coordinates[1]-winy/2)})
 		}
 		, getDelta = function(e){
 			var evt=window.event || e;
@@ -127,7 +138,7 @@ var game = {
 			}
 		}
 		$(document).bind('keyup',kup);
-		$(document).bind('click',click_fn);
+		$(window).bind('click',click_fn);
 		var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel"
 		document.addEventListener(mousewheelevt, getDelta, false)
 	},
@@ -196,7 +207,7 @@ var game = {
 			for (i=0; i < w; i+=50){
 				paper.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
 			}
-			$('#viewPort').css({left: cx+'px', top: cy-50+'px'})
+			$('#viewPort').css({left: cx+'px', top: cy+'px'})
 			//paper.circle(2500,1000,2400).attr({"fill":"transparent", "stroke-width":10});
 			//vp.css({left:-1500,top:cy});			
 		},
