@@ -124,9 +124,8 @@ var game = {
 		                this.ellipse(x, y, r, r).attr({stroke: "none", fill: "r#ccc-#ccc", opacity: 0})
 		            );
 		        };
-		this.draw.paper = Raphael('viewPort', 5000, this.draw.winy);
+		this.draw.paper = Raphael('viewPort', 5000, 5000);
 		this.draw.graph();
-		g = this.winy/10;
 	},
 	draw:{
 		paper:null,
@@ -137,8 +136,30 @@ var game = {
 			,winy = this.winy
 			,winx = this.winx
 			,alphaGraph = {}
-			,iable = winy/25, xine = 5000/iable;
+			var w = $('#viewPort').width();
+			var h = $('#viewPort').height();
+			var vp =  $('#viewPort');
+			var cx = (winx-w)/2;
+			var cy = (winy-h)/2;
+			var rx = w/winx;
+			var ry = h/(winy)
+			,iable = h/25, xine = 5000/iable;
 			
+			for (i=0; i < w; i+=10){
+				paper.path("M"+i+" 0L"+i+" "+h).attr({"stroke":"rgba(252,244,6,.1)"});
+			}
+			for (i=0; i < w; i+=10){
+				paper.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
+			}
+			for (i=0; i < w; i+=50){
+				paper.path("M"+i+" 0L"+i+" "+h).attr({"stroke":"rgba(252,244,6,.1)"});
+			}
+			for (i=0; i < w; i+=50){
+				paper.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
+			}
+			
+			
+						/*
 			for (i=0;i<xine;++i){
 				paper.path("M"+iable*i+" 0L"+iable*i+" "+winy).attr({"stroke":"rgba(252,244,6,.1)"});
 			}
@@ -150,7 +171,20 @@ var game = {
 			}
 			for (i=0;i<xine;++i){
 				paper.path("M0 "+(winy/100)*i+"L"+5000+" "+(winy/100)*i).attr({"stroke":"rgba(252,244,6,.1)"});
-			}
+			}*/
+			paper.circle(2500,2500,2400).attr({"fill":"transparent", "stroke-width":300});
+			vp.css({left:-1500,top:cy});
+			
+			// moves view port
+			$('#viewPort').mousemove(function(e){
+				var x = e.pageX;
+				var y = e.pageY;
+					vp.css({
+					left : x*(1 - rx)});
+					vp.css({
+					top  : y*(1 - ry)});
+				});
+			
 		},
 		energyWave:function(x,y,r,_id){
 			var _id = 123
