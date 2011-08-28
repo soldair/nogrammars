@@ -83,15 +83,16 @@ var server = {
 						if(!id) {//brand new
 							//persistent sid or unique per page client id
 							id = iosid||_clientId;
-							socket.set('clientid',id);
-							if(!z.clients[id]){
-								z.clients[id] = {game:z.joinedGame(game,id,socket)};
-								console.log("brand new client "+id);
-							} else {
-								console.log("RECONNECTED client "+id);
-								z.clients[id].disconnected = null;
-								z.clients[id].game = z.joinedGame(game,id,socket,true);
-							}
+							socket.set('clientid',id,function(){
+								if(!z.clients[id]){
+									z.clients[id] = {game:z.joinedGame(game,id,socket)};
+									console.log("brand new client "+id);
+								} else {
+									console.log("RECONNECTED client "+id);
+									z.clients[id].disconnected = null;
+									z.clients[id].game = z.joinedGame(game,id,socket,true);
+								}
+							});
 						} else if(z.clients[id]){
 							//clear disconnected flag if present
 							if(z.clients[id].disconnected) delete z.clients[id].disconnected;
@@ -123,11 +124,20 @@ var server = {
 			});
 			
 			socket.on("event", function(data){
+				console.log('EVENT ',data);
 				socket.get('clientid',function(id){
-					if(!id) return;
-					var gameId = this.clients[id]||{}.game;
-					if(!gameId) return;
-					z.games[gameId].clientEvent(data.name,data.data)
+					//INSECURE \/
+					if(data.client) id=data.client;
+					
+					console.log('got id '+id+" "+_clientId+"  "+iosid);
+					console.log(z.clients[data.client]);
+					
+					var gameId = (z.clients[data.client]||{}).game;
+					if(!gameId){
+						console.log('missing game id for socket event from id');
+						return;
+					}
+					z.games[gameId].game.clientEvent(id,data.command,data);
 				});
 			});
 			
