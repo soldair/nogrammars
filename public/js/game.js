@@ -27,6 +27,7 @@ _game = game = {
 	clientIntervalTime:50,
 	heartBeatInterval:null,
 	viewPort:null,
+	playerId:null,
 	gameState:{
 		serverIntervalTime:100,
 		units:{}
@@ -143,6 +144,7 @@ _game = game = {
 			console.log('connection made',arguments);
 			var iosid = (z.parseCookies()||{})['io.sid']||false;
 			z.socket.emit("join",{game:z.gameId,sid:iosid});
+			this.playerId = iosid;
 		});
 
 		//server reports game state here
