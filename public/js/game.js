@@ -146,8 +146,9 @@ _game = game = {
 		});
 
 		//server reports game state here
-		socket.on('sync', function(state){
-			z.gameState = state;
+		socket.on('sync', function(data){
+			z.playerId = data.clientId;
+			z.gameState = data.state;
 			z.paper();
 
 			z.loading(false);
@@ -278,6 +279,18 @@ _game = game = {
 			var renderState = this.renderState.objects[object.id];
 			renderState.object.remove();
 		}
+	},
+	getPlayersUnit:function(){
+		var z = this
+		,pu  = null;
+		
+		Object.keys(this.gameState.units).forEach(function(id,v){
+			if(z.gameState.units[id]['owner'] ==  z.playerId) {
+				pu = z.gameState.units[id] ;
+				return false;
+			}
+		});
+		return pu;
 	},
 	addRenderedUnit:function(id,svgObject){
 		this.renderState.units[id] = svgObject;

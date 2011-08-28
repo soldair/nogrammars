@@ -176,7 +176,7 @@ var server = {
 		}
 		
 		//sync current game state
-		z.emitToGame(this.games[gameId],'sync',this.games[gameId].game.gameState);
+		z.emitToGame(this.games[gameId],'sync',{state:this.games[gameId].game.gameState,clientId:clientId});
 
 		return gameId;
 	},
