@@ -231,6 +231,7 @@ _game = game = {
 			} catch (e) {
 				console.error(e);
 				console.warn('ERROR IN HEARTBEAT. stopping game loop');
+				clearInterval(z.heartBeatInterval);
 			}
 		},z.clientIntervalTime);
 	},
@@ -280,12 +281,14 @@ _game = game = {
 					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
 
 				} else if(unit.position[0] != unit.destination[0] || unit.position[1] != unit.destination[1]){
-
 					
+					if(unit.position[0] === null) {//shouldnt happen
+						unit.position = [unit.destination[0],unit.destination[1]];
+					}
 					//apply delta
-					var badp = z.math.moveToward(unit.position,unit.destination,Math.floor(unit.speed/translationFactor));
-					console.log(badp);
-					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
+					var p = z.math.moveToward(unit.position,unit.destination,unit.speed/translationFactor);
+					console.log('next position ',p);
+					z.draw.drawShip(p[0],p[1],unit.id);
 					
 				}
 			});
@@ -377,17 +380,38 @@ _game = game = {
 };
 
 _game.math = {
-	moveToward:function(c1,c2,distance,constrain) {
+ 	moveToward:function(c1,c2,distance,constrain) {
 
 		var slope = this.slope(c1,c2)
-		,x = distance-slope
+		c3 = [c1[0],c1[1]];
+		
+		console.log(c1,c2,'slope ',slope);
+		
+		if(!slope) {
+			c3 = [];
+			if(c1[0] == c2[0]) {
+				c3[1] +=distance;
+			} else {
+				c3[0] +=distance;
+			}
+			if(constrain){
+				if(c3[0]>c2[0]) c3[0]=c2[0];
+				if(c3[1]>c2[1]) c3[1]=c2[1];
+			}
+			return c3;
+		} 
+		
+
+		var x = distance-slope
 		,y = slope*x;
 		
 		//apply direction
 		if(c1[0] > c2[0]) x = -x;
 		if(c1[1] > c2[1]) y = -y;
 		
-		var c3 =[c1[0]+x,c1[1]+y];
+		c3 =[c1[0]+x,c1[1]+y];
+		
+		console.log(x,y);
 		
 		if(constrain !== false){
 			//stop movement at desired location
@@ -402,6 +426,7 @@ _game.math = {
 				if(c3[1]<c2[1]) c3[1] = c2[1];
 			}
 		}
+		
 		return c3;
 	},
 	slope:function(c1,c2){
@@ -543,6 +568,7 @@ _game.draw = {
 		,renderState = _game.renderState.units[_id];
 		
 		if(!renderState.object){
+
 			renderState.object = paper.set();
 			renderState.object.push(
 				paper.circle(x-3,y+5,40).attr({
@@ -562,13 +588,15 @@ _game.draw = {
 			);
 			renderState.position = c1;
 			renderState.rotate = 0;
+		
 		} else {
-			console.log('translate: ',renderState.position[0]-c1[0],renderState.position[1]-c1[1]);
+			//console.log('translate: ',renderState.position[0]-x,renderState.position[1]-y);
 			//console.log(renderState.position);
 			//console.log(serverData.position);
 			// apply movement translated from last rendered position to current
-			//renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1]);
-			renderState.object.animate({cx:renderState.position[0],cy:renderState.position[1]},1);
+			renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1]);
+			//renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1],1);
+			
 		}
 		
 		if(isMoving){

@@ -168,16 +168,6 @@ var server = {
 			g = this.games[gameId];
 			
 			g.game.onChangeCb = function(changes){
-				
-				if(changes.units && changes.units.length){
-					if(isNaN(changes.units[0].position[0])){
-						throw "SERVER SIDE!!";
-					}
-				}
-				if(changes.units && changes.units.length == 0) {
-					throw new Error('caught you!');
-					return;
-				}
 				z.emitChanges(z.games[gameId],changes);
 			};
 			
