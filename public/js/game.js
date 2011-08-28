@@ -1,6 +1,8 @@
-
-
-var game = {
+var game;
+(function(){
+//_game as the local refrence to the main object
+var _game;
+_game = game = {
 	socket:null,
 	mouse_coordinates:[0,0],
 	gameId:0,//your game
@@ -27,8 +29,6 @@ var game = {
 
 		//after set gameId
 		this.socketInit();
-		//share renderState with draw object - kinda sucky
-		this.draw.renderState = this.renderState;
 	},
 	cmds:{
 		click: "fire",
@@ -98,6 +98,7 @@ var game = {
 			z.gameState = state;
 			z.paper();
 			z.loading(false);
+			z.setBeats();
 			z.checkHeartBeat();
 		});
 
@@ -108,7 +109,7 @@ var game = {
 
 		socket.on('joined',function(data){
 			console.log('joined event emitted ',data);
-			z.flashMessage(data.id+' joined the game!');
+			z.flashMessage(data.id+' '+(data.reconnected?'reconnected to':'joined')+' the game!');
 		});
 
 		socket.on('abandoned',function(data){
@@ -151,18 +152,16 @@ var game = {
 		});
 	},
 	checkHeartBeat:function(){
-		if(!this.heartBeatInterval) this.heartBeat();
+		if(this.heartBeatInterval === null) this.heartBeat();
 	},
 	heartBeat:function(){
 		//translate all property values based on 
 		//(server interval/my interval)
 		var z = this;
 		z.heartBeatInterval = setInterval(function(){
-			$.each(z.beatCbs,function(k,v){
-				//v(z.gameState);
-				//events buffer?
-				console.log(k,v);
-			});
+			for(var i=0,j=z.beatCbs.length;i<j;i++){
+				z.beatCbs[i](z.gameState);
+			}
 		},z.clientIntervalTime);
 	},
 	onBeat:function(cb,remove){
@@ -183,11 +182,23 @@ var game = {
 		//g = this.winy/10;
 	},
 	setBeats:function(){
+		var z = this;
 		//unit movement
 		this.onBeat(function(serverData){
-			//var translationFactor = serverData.serverIntervalTime/
+			var translationFactor = serverData.serverIntervalTime/serverData.clientIntervalTime;
+			//this will be optimzed to only loop changed.
+
 			$.each(serverData.units,function(k,unit){
-				if(unit.position[0] != unit.destination[0] || unit.position[1] != unit.destination[1]){
+				//is rendered?
+				if(!z.isUnitRendered(unit.id)){
+
+					z.draw.drawUnit(unit.position[0],unit.position[1],unit.id);
+
+				} else if(unit.position[0] != unit.destination[0] || unit.position[1] != unit.destination[1]){
+					
+					//apply delta
+					unit.position = z.math.moveToward(unit.position,unit.destination,math.floor(unit.speed/factor));
+					z.draw.drawUnit(unit.position[0],unit.position[1],unit.id);
 					
 				}
 			});
@@ -226,16 +237,16 @@ var game = {
 		},
 		drawUnit:function (x,y,_id){
 			var paper = this.paper;
-			
+
 			//set to empty object just in case we want to attach different render specific data like rotation
-			if(!this.renderState.units[_id]) this.renderState.units[_id] = {};
+			if(!_game.renderState.units[_id]) _game.renderState.units[_id] = {};
 			
-			var serverData = this.gameState.units[_id]
+			var serverData = _game.gameState.units[_id]
 			,c1 = serverData.position
 			,c2 = serverData.destination
 			//uses isMoving to know when to rotate
 			,isMoving = (c1[0] != c2[0] || c1[1] != c2[1])
-			,renderState = this.renderState.units[_id];
+			,renderState = _game.renderState.units[_id];
 			
 			if(!renderState.object){
 				renderState.object = paper.set();
@@ -278,6 +289,9 @@ var game = {
 			var b = y - (m*x);
 			return [m,b]
 		}
+	},
+	isUnitRendered:function(id){
+		return (this.renderState.units[id]||{}).object;
 	},
 	deleteRenderedUnit:function(unit){
 		if(this.renderState.units[unit.id]){
@@ -341,6 +355,41 @@ var game = {
 		return kv;
 	}
 };
+
+_game.math = {
+	moveToward:function(c1,c2,distance,constrain) {
+
+		var slope = this.slope(c1,c2)
+		,x = distance-slope
+		,y = slope*x;
+		
+		//apply direction
+		if(c1[0] > c2[0]) x = -x;
+		if(c1[1] > c2[1]) y = -y;
+		
+		var c3 =[c1[0]+x,c1[1]+y];
+		
+		if(constrain !== false){
+			//stop movement at desired location
+			if(x > 0){//moving right
+				if(c3[0]>c2[0]) c3[0] = c2[0];
+			} else {//moving left
+				if(c3[0]<c2[0]) c3[0] = c2[0];
+			}
+			if(y > 0){//up
+				if(c3[1]>c2[1]) c3[1] = c2[1];
+			} else {//down
+				if(c3[1]<c2[1]) c3[1] = c2[1];
+			}
+		}
+		return c3;
+	},
+	slope:function(c1,c2){
+		return (c1[1]-c2[1])/(c1[0]-c2[0]);
+	}
+};
+
+}());
 
 $(function(){
 	game.init();

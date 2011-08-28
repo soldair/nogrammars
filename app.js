@@ -3,6 +3,7 @@ var http = require('http')
 , nko = require('nko')('1QyupeJT3MVzJOLf')
 , express = require('express')
 , io = require('socket.io')
+, hashlib = require('hashlib')
 ,gameCore = require(__dirname+'/lib/game.js');
 
 //slug nogrammars secret 1QyupeJT3MVzJOLf
@@ -44,13 +45,13 @@ var server = {
 
 		app.get('/', function (req, res) {
 			//NOTE should be set on all routes
-			res.cookie('io.sid', req.sessionID, {httpOnly:false,path:'/'});
+			res.cookie('io.sid', req.sessionID, {httpOnly:false,path:'/',maxAge:864000000});
 			res.render('index', { layout: false });
 		});
 
 		app.get('/game/:id',function(req,res){
 			//NOTE should be set on all routes
-			res.cookie('io.sid', req.sessionID, {httpOnly:false,path:'/'});
+			res.cookie('io.sid', req.sessionID, {httpOnly:false,path:'/',maxAge:864000000});
 			res.render('index', { layout: false});
 		});
 
@@ -63,13 +64,13 @@ var server = {
 		
 		//NOTE this will need refactor... its a little hairy
 		sio.sockets.on("connection", function (socket) {
-			//TODO cannot use socket id because its unique with each page refresh  
-			var _clientId = socket.id;
+
+			var _clientId = socket.id,iosid;
 			console.log('socket id ', socket.id);
 			
 			socket.on("join",function(data){
 				var game = data.game
-				,iosid = data.sid;
+				,iosid = hashlib.md5(data.sid);
 				
 				if(game && /^\d+$/.test(game+'')) {
 					socket.get('clientid',function(id){
@@ -83,6 +84,7 @@ var server = {
 							} else {
 								console.log("RECONNECTED client "+id);
 								z.clients[id].disconnected = null;
+								z.clients[id].game = z.joinedGame(game,id,socket,true);
 							}
 						} else if(z.clients[id]){
 							//clear disconnected flag if present
@@ -125,8 +127,8 @@ var server = {
 			
 			socket.on("disconnect", function () {
 				
-				console.info('disconnected:  ',_clientId);
-				z.disconnectedFromGame(_clientId);
+				console.info('disconnected:  ',iosid);
+				z.disconnectedFromGame(iosid||_clientId);
 			});
 
 			
@@ -137,7 +139,7 @@ var server = {
 		console.log('Listening on ' + this.app.address().port);
 	},
 	// ------------------- /\ init stuff --- \/ helper stuff
-	joinedGame:function(gameId,clientId,socket){
+	joinedGame:function(gameId,clientId,socket,reconnected){
 		var z = this;
 		if(!this.games[gameId]){
 			this.games[gameId] = {
@@ -155,12 +157,14 @@ var server = {
 			};
 		}
 
-		z.emitToGame(this.games[gameId],'joined',{id:clientId});
+		z.emitToGame(this.games[gameId],'joined',{id:clientId,reconnected:reconnected});
 
 		this.games[gameId].clients[clientId] = socket;
 		
-		//THIS IS where i make the first unit. this is not really a good place for this call but it'll do for 5:42 am
-		this.games[gameId].game.createUnit('ship',[+(Math.random()+'').substr(2,3),30],clientId);
+		if(this.games[gameId]) {
+			//THIS IS where i make the first unit. this is not really a good place for this call but it'll do for 5:42 am
+			this.games[gameId].game.createUnit('ship',[+(Math.random()+'').substr(2,3),30],clientId);
+		}
 		
 		//sync current game state
 		z.emitToGame(this.games[gameId],'sync',this.games[gameId].game.gameState);
@@ -168,6 +172,9 @@ var server = {
 		return gameId;
 	},
 	disconnectedFromGame:function(id){
+		console.log('DISCONNECT '+id);
+		
+		
 		var z = this;
 		if(!z.clients[id]) return;
 		//in 30 seconds if the client with id has not reconnected remove them from the game
@@ -208,7 +215,7 @@ var server = {
 	emitChanges:function(game,changes){
 		if(!this._fullSyncKeyFrame) this._fullSyncKeyFrame = Date.now();
 		//can only use volitile if i blast sync often
-		//PERIODIC full sync - this was done before performance testing and may not be necessary
+		//PERIODIC full sync
 		if(this._fullSyncKeyFrame+this.fullSyncKeyFrame < Date.now()){
 			this.emitToGame(game,'changes',game.game.gameState.units);
 			this._fullSyncKeyFrame = Date.now();
