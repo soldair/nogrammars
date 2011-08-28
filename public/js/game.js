@@ -187,21 +187,29 @@ _game = game = {
 			console.log('CHANGES ',changes);
 			$.each(changes,function(type,changes){
 				$.each(changes,function(i,changed){
+					console.log('type ',type);
 					z.gameState[type][changed.id] = changed;
+					console.info("server change: ",type+' > ',z.gameState[type][changed.id]);
 				});
 			});
 		});
 		
 		socket.on('delete',function(deletes){
 			$.each(deletes,function(k,data){
-				if(data.type == 'unit'){
+
+				if(data.type == 'units'){
 					if(z.gameState.units[data.id]){
 						z.deleteRenderedUnit(z.gameState.units[data.id]);
-						delete z.gameState.units[data.id];
 					}
-				} else if(z.gameState.objects[data.id]){
-					z.deleteRenderedObject(z.gameState.units[data.id]);
-					delete z.gameState.objects[data.id];
+				} else if(data.type == 'objects'){
+					if(z.gameState.objects[data.id]){
+						z.deleteRenderedObject(z.gameState.objects[data.id]);
+					}
+				}
+
+				if(z.gameState[data.type]) {
+					console.info("server delete: ",data.type+' > ',z.gameState[data.type][data.id]);
+					delete z.gameState[data.type][data.id];
 				}
 			});
 		});
