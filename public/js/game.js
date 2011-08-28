@@ -267,9 +267,14 @@ _game = game = {
 			$.each(serverData.units,function(k,unit){
 				//is rendered?
 				if (unit.owner == game.getPlayersUnit().owner){
-					game.draw.myEnergyMeter(unit.energy/10)
+					if(!z.renderState.units[unit.id]) z.renderState.units[unit.id] = {};
+					if(z.renderState.units[unit.id].energy != unit.energy){
+						z.renderState.units[unit.id].energy = unit.energy;
+						_game.draw.myEnergyMeter(unit.energy/10);
+					}
 				}
 				if(!z.isUnitRendered(unit.id)){
+					console.log('DRAW SHIP');
 					//TODO UPDATE THIS TO DRAW UNIT
 					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
 
