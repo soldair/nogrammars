@@ -1,12 +1,8 @@
-
-<<<<<<< HEAD
 var socket = io.connect();
 
  socket.on('connect', function () {
    console.log('connection made')
  });
-=======
->>>>>>> 8f519f993ae5aa192f1dc61700de948b89db571a
 
 var game = {
 	socket:null,
