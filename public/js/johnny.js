@@ -1,8 +1,8 @@
 Raphael.fn.flag = function (x, y, r, hue) {
             hue = hue || 0;
             return this.set(
-                this.ellipse(x - r / 2, y + r - r / 2, r, r).attr({fill: "rhsb(" + hue + ", 1, .25)-hsb(" + hue + ", 1, .25)", stroke: "none", opacity: 0}),
-                this.ellipse(x, y, r, r).attr({fill: "rhsb(" + hue + ", 1, .75)-hsb(" + hue + ", .5, .25)", stroke: "none"}),
+                this.ellipse(x - r / 2, y + r - r / 2, r, r).attr({fill: "rhsb(" + hue + ", .11, .25)-hsb(" + hue + ", 1, .25)", stroke: "none", opacity: 0}),
+                this.ellipse(x, y, r, r).attr({fill: "rhsb(" + hue + ", .11, .75)-hsb(" + hue + ", .5, .25)", stroke: "none"}),
                 this.ellipse(x, y, r, r).attr({stroke: "none", fill: "r#ccc-#ccc", opacity: 0})
             );
         };
@@ -39,6 +39,7 @@ function graph(){
 		commander.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
 	}
 	for (i=0; i < w; i+=50){
+		commander.circle(winx/2,winy/2,i).attr({"stroke":"rgba(252,244,6,.1)"});
 		commander.path("M"+i+" 0L"+i+" "+h).attr({"stroke":"rgba(252,244,6,.1)"});
 	}
 	for (i=0; i < w; i+=50){
@@ -52,7 +53,7 @@ function graph(){
 		})
 	*/
 var e = {
-	drawUnit:function (x,y,_id,team, shield){
+	drawUnit:function (x,y,_id,team, shield,eRad){
 		if (team == "purple"){ var tcolor = "purple", fcolor =.66}
 		if (team == "yellow"){var tcolor = "rgba(47,208,63,.2):80", fcolor =.25}
 	e[_id] = commander.set();
@@ -63,8 +64,8 @@ var e = {
 			//paper.circle(x,y,14).attr({"fill":"r(.45,.45)rgba(112,23,18,.67):5-rgba(162,47,171,1):80-rgba(230,230,240,1)", "stroke-width":0})
 		);
 		if (shield){e[_id].push(commander.circle(x-3,y+5,40+1*shield).attr({"fill":"rrgba(255,255,255,.1):20-"+tcolor,"stroke-width":0,"fill-opacity":.1}))}
-		e[_id].push(commander.flag(x,y,10,fcolor))
-		//setInterval(function(){e[_id].rotate(15)},30);
+
+		setInterval(function(){e[_id].rotate(60)},100);
 	},
 	moveToward:function(c1,c2,distance,constrain) {
 
@@ -117,7 +118,15 @@ var e = {
 		document.addEventListener(mousewheelevt, getDelta, false)
 	},
 } 
-e.drawUnit(200,200,"tl", "yellow", 0);
-e.drawUnit(winx-200,200,"tr", "purple", 20);
-e.drawUnit(200,winy-200,"bl", "purple", 40);
-e.drawUnit(winx-200,winy-200,"br", "yellow", 100);
+e.drawUnit(100,100,"tl", "yellow");
+e.drawUnit(winx-100,100,"tr", "purple");
+e.drawUnit(100,winy-100,"bl", "purple");
+e.drawUnit(winx-100,winy-100,"br", "yellow");
+
+var finito = [[]];
+
+var fPath = commander.path("M100 100 "+(winx-100)+" 100 "+(winx-100)+" "+(winy-100)+" 100 "+(winy-100)+"z").attr({stroke:"transparent"})
+
+commander.text(100,100,"F")
+commander.print(100, 100, "Test string", commander.getFont("Times", 800), 30);
+
