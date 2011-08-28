@@ -58,11 +58,36 @@ _game = game = {
 			}
 		}
 	},
+ 	scout: {
+		get: 0,
+		set: function(){
+		if (!this.get){$('#console').unbind('mousemove');return}
+		var w = $('#viewPort').width();
+		var h = $('#viewPort').height();
+		var vp =  $('#viewPort');
+		var vpleft = parseInt(vp.css("left"));
+		var vptop = parseInt(vp.css("top"));
+		var cx = (winx-w)/2;
+		var cy = (winy-h)/2;
+		var rx = w/winx;
+		var ry = h/(winy)
+		$("#console").mousemove(function(e){
+			var x = e.screenX;
+			var y = e.screenY;
+			var xzoom = -(x/winx)*(w)+w/3;
+			var yzoom = -(y/winy)*(h)+h/3;
+			console.log(w);
+				vp.css({
+				left : xzoom, top: yzoom});
+		});
+	}},
 	event_emitter: function(){
 		var z = this,
 		keys = [65,68,83,87,69,81,32,70,48,49,50,51,52,53,54,55,56,57]
 		, kup = function(e){
+					console.log(e.keyCode);
 			e.preventDefault()
+			if(e.keyCode == 68){toggleValue(game.scout);game.scout.set()}
 			if (!_.include(keys, e.keyCode)){return false}
 			if (e.keyCode > 48 && e.keyCode < 58){game.fluxCapacity.set((e.keyCode-48)*10);return}
 			if (e.keyCode == 48){game.fluxCapacity.set(100);return}
@@ -70,7 +95,10 @@ _game = game = {
 			z.socket.emit("event", "key", code, z.mouse_coordinates);
 		}
 		, click_fn = function(e){
-			z.socket.emit("event", "click", z.cmds.click, z.mouse_coordinates)
+			console.log(parseInt(vp.css("left")));
+			z.socket.emit("event", "click", z.cmds.click, z.mouse_coordinates);
+			$('#viewPort').css({left: parseInt(vp.css("left"))-(z.mouse_coordinates[0]-winx/2), top: parseInt(vp.css("top"))-(z.mouse_coordinates[1]-winy/2)})
+			console.log(parseInt(vp.css("left")));
 		}
 		, getDelta = function(e){
 			var evt=window.event || e;
@@ -84,7 +112,7 @@ _game = game = {
 			}
 		}
 		$(document).bind('keyup',kup);
-		$('#viewPort').bind('click',click_fn);
+		$(window).bind('click',click_fn);
 		var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel"
 		document.addEventListener(mousewheelevt, getDelta, false)
 	},
@@ -349,7 +377,7 @@ _game.draw = {
 			);
 		};
 		this.paper = Raphael('viewPort', width, height);
-		this.commander = Raphael('console', this.winx, this.winy<720?700:this.winy);
+		this.commander = Raphael('console', this.winx, this.winy);
 		
 	},
 	graph:function(){
@@ -499,7 +527,7 @@ _game.draw = {
 		if (x > 49 && x < 75) color = "orange";
 		if (x > 24 && x < 50) color = "yellow";
 		if (x > 74) color = "green";
-		this.commander.rect(10,10,30,700,5).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"90-"+color+":"+x+"-#111:"+x});
+		this.commander.rect(10,10,30,700>this.winy?this.winy-10:700,5).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"90-"+color+":"+x+"-#111:"+x});
 	},
 	myFluxCapacitor: function(x){
 		color: "rgba(6,252,30,1)"
