@@ -1,0 +1,15 @@
+doctype 5
+html
+	head
+		link(href='/css/style.css', rel='stylesheet')
+		script(src='/js/jquery-1.6.2.min.js')
+		script(src='/socket.io/socket.io.js')
+		script(src='/js/raphael-min.js')
+		script(src='/js/underscore-min.js')
+
+	body
+		#viewPort
+		#msg
+	script(src='/js/game.js')
+	script 
+		$(function(){game.init()});

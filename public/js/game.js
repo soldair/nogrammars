@@ -48,7 +48,7 @@ _game = game = {
 			if (x < 0){
 				y = 0
 			}; 
-			game.draw.myFluxCapacitor(y); this.get = y
+			_game.draw.myFluxCapacitor(y); this.get = y
 		}
 	},
 	new_unit: function(type, _id, x, y){
@@ -209,17 +209,9 @@ _game = game = {
 	paper:function(){
 		if(this.paperInit) return;
 		this.paperInit = 1;
-		//RAPHAEL INIT
-		Raphael.fn.flag = function (x, y, r, hue) {
-		            hue = hue || 0;
-		            return this.set(
-		                this.ellipse(x - r / 2, y + r - r / 2, r, r).attr({fill: "rhsb(" + hue + ", 1, .25)-hsb(" + hue + ", 1, .25)", stroke: "none", opacity: 0}),
-		                this.ellipse(x, y, r, r).attr({fill: "rhsb(" + hue + ", 1, .75)-hsb(" + hue + ", .5, .25)", stroke: "none"}),
-		                this.ellipse(x, y, r, r).attr({stroke: "none", fill: "r#ccc-#ccc", opacity: 0})
-		            );
-		        };
-		this.draw.paper = Raphael('viewPort', this.gameState.world.width || 5000, this.gameState.world.height || this.draw.winy);
 
+		this.draw.bootPaper();
+		
 		this.draw.graph();
 		//g = this.winy/10;
 		
@@ -227,6 +219,7 @@ _game = game = {
 		this.draw.purpleBase(600,300,200,200);
 		this.draw.myEnergyMeter(66); // param  = % energy
 		//this.fluxCapacity.set(40); // probably not a percentage of energy, but a unit value
+		
 	},
 	setBeats:function(){
 		var z = this;
@@ -250,118 +243,6 @@ _game = game = {
 				}
 			});
 		});
-	},
-	draw:{
-		paper:null,
-		winx:window.innerWidth,
-		winy:window.innerHeight,
-		graph:function(){
-			var paper = this.paper
-			,winy = this.winy
-			,winx = this.winx
-			,alphaGraph = {}
-			,iable = winy/25, xine = 5000/iable;
-			
-			for (i=0;i<xine;++i){
-				paper.path("M"+iable*i+" 0L"+iable*i+" "+winy).attr({"stroke":"rgba(252,244,6,.1)"});
-			}
-			for (i=0;i<$('#viewPort').width()/(winy/100);++i){
-				paper.path("M"+(winy/100)*i+" 0L"+(winy/100)*i+" "+winy).attr({"stroke":"rgba(252,244,6,.1)"});
-			}
-			for (i=0;i<25;++i){
-				paper.path("M0 "+iable*i+"L"+5000+" "+iable*i).attr({"stroke":"rgba(252,244,6,.1)"});
-			}
-			for (i=0;i<xine;++i){
-				paper.path("M0 "+(winy/100)*i+"L"+5000+" "+(winy/100)*i).attr({"stroke":"rgba(252,244,6,.1)"});
-			}
-		},
-		energyWave:function(x,y,r,_id){
-			var _id = 123
-			,mb = this.linear(0,this.winy,x,y)
-			,z = (mb[0]*5000) + mb[1];
-			
-			game[_id] = this.paper.circle(0,this.winy,r).attr({"stroke-width":0,"fill":"rrgba(138,211,242,1)-rgba(68,68,68,0)"}).animate({"cx":5000,"cy":z,"r":r*100,"opcaity":0,"fill-opacity":0},747)
-		},
-		drawUnit:function (x,y,_id){
-			//set to empty object just in case we want to attach different render specific data like rotation
-			if(!_game.renderState.units[_id]) _game.renderState.units[_id] = {};
-			
-			var serverData = _game.gameState.units[_id]
-			,paper = this.paper
-			,c1 = serverData.position
-			,c2 = serverData.destination
-			//uses isMoving to know when to rotate
-			,isMoving = (c1[0] != c2[0] || c1[1] != c2[1])
-			,renderState = _game.renderState.units[_id];
-			
-			if(!renderState.object){
-				renderState.object = paper.set();
-				renderState.object.push(
-					paper.circle(x-3,y+5,40).attr({
-						"fill":"rrgba(0,0,0,.5):50-rgba(0,0,0,.1)",
-						"stroke-width":0
-					})
-					, paper.circle(x, y, 40).attr({
-						"fill":"rrgba(240,240,240,1):10-rgba(47,208,63,1):75-rgba(165,182,157,1)",
-						"stroke":"yellow",
-						"stroke-width":1
-					})
-					, paper.path("M"+(x+28)+" "+(y+28)+"L"+(x-28)+" "+(y-28)+" M"+(x-28)+" "+(y+28)+"L"+(x+28)+" "+(y-28)).attr({
-						"stroke":"rgba(105,161,109,.5)",
-						"stroke-width":2
-					})
-					,paper.circle(x,y,14).attr({
-						"fill":"r(.45,.45)rgba(112,23,18,.67):5-rgba(162,47,171,1):80-rgba(230,230,240,1)", 
-						"stroke-width":0
-					})
-				);
-				renderState.position = c1;
-				renderState.rotate = 0;
-			} else {
-				// apply movement translated from last rendered position to current
-				renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[2]);
-			}
-			
-			if(isMoving){
-				renderState.rotate += 10;
-				if(renderState.rotate > 360){
-					renderState.rotate -= 360;
-				}
-				renderState.object.rotate(renderState.rotate);
-			}
-		},
-		yellowBase : function(x,y,h,w){
-			for (i=0;i<8;++i){
-				this.paper.rect(x+(10*i),y+(10*i),h-(20*i),w-(20*i)).attr({"stroke":"rgba(47,208,63,1)", fill: "#444","stroke.width":"3px"})
-			}
-			this.paper.flag(x+100,y+100,14,.25)
-		},
-		purpleBase : function(x,y,h,w){
-			for (i=0;i<8;++i){
-				this.paper.rect(x+(10*i),y+(10*i),h-(20*i),w-(20*i)).attr({"stroke":"purple", fill: "#444","stroke.width":"3px"})
-			}
-			this.paper.flag(x+100,y+100,14,.66);
-		},
-		myEnergyMeter: function(x){
-			var color;
-			if (x < 25) color = "red";
-			if (x > 49 && x < 75) color = "orange";
-			if (x > 24 && x < 50) color = "yellow";
-			if (x > 74) color = "green";
-			this.paper.rect(10,10,30,700,5).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"90-"+color+":"+x+"-#111:"+x});
-		},
-		myFluxCapacitor: function(x){
-			/*
-			color: "rgba(6,252,30,1)"
-			this.paper.rect(37,this.winy-77,300,30,15).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"360-rgba(30,245,245,.68):"+x+"-#111:"+x});
-			this.paper.text(90,this.winy-62,"FLUX CAPACITY").attr({stroke:"#111"})
-			*/
-		},
-		linear:function (x, y,x1,y1){
-			var m = (y1 - y)/x1 -x;
-			var b = y - (m*x);
-			return [m,b]
-		}
 	},
 	isUnitRendered:function(id){
 		return (this.renderState.units[id]||{}).object;
@@ -462,8 +343,139 @@ _game.math = {
 	}
 };
 
-}());
+_game.draw = {
+	paper:null,
+	winx:window.innerWidth,
+	winy:window.innerHeight,
+	bootPaper:function(viewport){
+		console.warn('now');
+		viewport = viewport||'viewPort';
+		
+		var width = 5000,height = this.winy;
+		
+		if(_game.gameState && _game.gameState.world) {
+			width = _game.gameState.world.width || 5000;
+			height = _game.gameState.world.height || this.winy;
+		}
+		
+		//RAPHAEL INIT
+		Raphael.fn.flag = function (x, y, r, hue) {
+			hue = hue || 0;
+			return this.set(
+				this.ellipse(x - r / 2, y + r - r / 2, r, r).attr({fill: "rhsb(" + hue + ", 1, .25)-hsb(" + hue + ", 1, .25)", stroke: "none", opacity: 0}),
+				this.ellipse(x, y, r, r).attr({fill: "rhsb(" + hue + ", 1, .75)-hsb(" + hue + ", .5, .25)", stroke: "none"}),
+				this.ellipse(x, y, r, r).attr({stroke: "none", fill: "r#ccc-#ccc", opacity: 0})
+			);
+		};
+		this.paper = Raphael('viewPort', width, height);
+	},
+	graph:function(){
+		var paper = this.paper
+		,winy = this.winy
+		,winx = this.winx
+		,alphaGraph = {}
+		,iable = winy/25, xine = 5000/iable;
+		
+		for (i=0;i<xine;++i){
+			paper.path("M"+iable*i+" 0L"+iable*i+" "+winy).attr({"stroke":"rgba(252,244,6,.1)"});
+		}
+		for (i=0;i<$('#viewPort').width()/(winy/100);++i){
+			paper.path("M"+(winy/100)*i+" 0L"+(winy/100)*i+" "+winy).attr({"stroke":"rgba(252,244,6,.1)"});
+		}
+		for (i=0;i<25;++i){
+			paper.path("M0 "+iable*i+"L"+5000+" "+iable*i).attr({"stroke":"rgba(252,244,6,.1)"});
+		}
+		for (i=0;i<xine;++i){
+			paper.path("M0 "+(winy/100)*i+"L"+5000+" "+(winy/100)*i).attr({"stroke":"rgba(252,244,6,.1)"});
+		}
+	},
+	energyWave:function(x,y,r,_id){
+		var _id = 123
+		,mb = this.linear(0,this.winy,x,y)
+		,z = (mb[0]*5000) + mb[1];
+		
+		game[_id] = this.paper.circle(0,this.winy,r).attr({"stroke-width":0,"fill":"rrgba(138,211,242,1)-rgba(68,68,68,0)"}).animate({"cx":5000,"cy":z,"r":r*100,"opcaity":0,"fill-opacity":0},747)
+	},
+	drawUnit:function (x,y,_id){
+		//set to empty object just in case we want to attach different render specific data like rotation
+		if(!_game.renderState.units[_id]) _game.renderState.units[_id] = {};
+		
+		var serverData = _game.gameState.units[_id]
+		,paper = this.paper
+		,c1 = serverData.position
+		,c2 = serverData.destination
+		//uses isMoving to know when to rotate
+		,isMoving = (c1[0] != c2[0] || c1[1] != c2[1])
+		,renderState = _game.renderState.units[_id];
+		
+		if(!renderState.object){
+			renderState.object = paper.set();
+			renderState.object.push(
+				paper.circle(x-3,y+5,40).attr({
+					"fill":"rrgba(0,0,0,.5):50-rgba(0,0,0,.1)",
+					"stroke-width":0
+				})
+				, paper.circle(x, y, 40).attr({
+					"fill":"rrgba(240,240,240,1):10-rgba(47,208,63,1):75-rgba(165,182,157,1)",
+					"stroke":"yellow",
+					"stroke-width":1
+				})
+				, paper.path("M"+(x+28)+" "+(y+28)+"L"+(x-28)+" "+(y-28)+" M"+(x-28)+" "+(y+28)+"L"+(x+28)+" "+(y-28)).attr({
+					"stroke":"rgba(105,161,109,.5)",
+					"stroke-width":2
+				})
+				,paper.circle(x,y,14).attr({
+					"fill":"r(.45,.45)rgba(112,23,18,.67):5-rgba(162,47,171,1):80-rgba(230,230,240,1)", 
+					"stroke-width":0
+				})
+			);
+			renderState.position = c1;
+			renderState.rotate = 0;
+		} else {
+			// apply movement translated from last rendered position to current
+			renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[2]);
+		}
+		
+		if(isMoving){
+			renderState.rotate += 10;
+			if(renderState.rotate > 360){
+				renderState.rotate -= 360;
+			}
+			renderState.object.rotate(renderState.rotate);
+		}
+	},
+	yellowBase : function(x,y,h,w){
+		for (i=0;i<8;++i){
+			this.paper.rect(x+(10*i),y+(10*i),h-(20*i),w-(20*i)).attr({"stroke":"rgba(47,208,63,1)", fill: "#444","stroke.width":"3px"})
+		}
+		this.paper.flag(x+100,y+100,14,.25)
+	},
+	purpleBase : function(x,y,h,w){
+		for (i=0;i<8;++i){
+			this.paper.rect(x+(10*i),y+(10*i),h-(20*i),w-(20*i)).attr({"stroke":"purple", fill: "#444","stroke.width":"3px"})
+		}
+		this.paper.flag(x+100,y+100,14,.66);
+	},
+	myEnergyMeter: function(x){
+		var color;
+		if (x < 25) color = "red";
+		if (x > 49 && x < 75) color = "orange";
+		if (x > 24 && x < 50) color = "yellow";
+		if (x > 74) color = "green";
+		this.paper.rect(10,10,30,700,5).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"90-"+color+":"+x+"-#111:"+x});
+	},
+	myFluxCapacitor: function(x){
+		/*
+		color: "rgba(6,252,30,1)"
+		this.paper.rect(37,this.winy-77,300,30,15).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"360-rgba(30,245,245,.68):"+x+"-#111:"+x});
+		this.paper.text(90,this.winy-62,"FLUX CAPACITY").attr({stroke:"#111"})
+		*/
+	},
+	linear:function (x, y,x1,y1){
+		var m = (y1 - y)/x1 -x;
+		var b = y - (m*x);
+		return [m,b]
+	}
+};
 
-$(function(){
-	game.init();
-});
+}());
