@@ -144,30 +144,33 @@ var server = {
 	},
 	// ------------------- /\ init stuff --- \/ helper stuff
 	joinedGame:function(gameId,clientId,socket,reconnected){
-		var z = this;
-		if(!this.games[gameId]){
-			this.games[gameId] = {
+		var z = this
+		,g = this.games[gameId];
+		
+		if(!g){
+			g = {
 				clients:{},
 				game:new gameCore.game(gameId)
 			};
 			
-			this.games[gameId].game.onChangeCb = function(changes){
+			g.game.onChangeCb = function(changes){
 				z.emitChanges(z.games[gameId],changes);
 			};
 			
-			this.games[gameId].game.onDeleteCb = function(deletes){
+			g.game.onDeleteCb = function(deletes){
 				//pass message to delete units and objects
 				z.emitToGame(z.games[gameId],'delete',deletes);
 			};
 		}
 
-		z.emitToGame(this.games[gameId],'joined',{id:clientId,reconnected:reconnected});
+		z.emitToGame(g,'joined',{id:clientId,reconnected:reconnected});
 
-		this.games[gameId].clients[clientId] = socket;
+		g.clients[clientId] = socket;
 		
-		if(this.games[gameId]) {
+		//TODO fix extra units
+		if(g && g.game && !reconnected) {
 			//THIS IS where i make the first unit. this is not really a good place for this call but it'll do for 5:42 am
-			this.games[gameId].game.createUnit('ship',[+(Math.random()+'').substr(2,3),30],clientId);
+			g.game.createUnit('ship',[+(Math.random()+'').substr(2,3),30],clientId);
 		}
 		
 		//sync current game state
