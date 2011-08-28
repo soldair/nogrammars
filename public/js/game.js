@@ -1,6 +1,16 @@
 var game;
 if(!window.console) window.console = {log:function(){}};
 
+function toggleValue(getter){
+	if (!getter.get){
+		getter = true;
+		return
+	}
+	if (getter.get){
+		getter = !getter
+	}
+}
+
 (function(){
 //_game as the local refrence to the main object
 var _game;
