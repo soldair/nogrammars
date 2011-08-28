@@ -31,7 +31,6 @@ _game = game = {
 
 		//after set gameId
 		this.socketInit();
-
 	},
 	cmds:{
 		click: "fire",
@@ -218,7 +217,8 @@ _game = game = {
 		                this.ellipse(x, y, r, r).attr({stroke: "none", fill: "r#ccc-#ccc", opacity: 0})
 		            );
 		        };
-		this.draw.paper = Raphael('viewPort', this.gameState.world.width || 5000, this.gameState.world.height || this.draw.winy);
+		//this.draw.paper = Raphael('viewPort', this.gameState.world.width || 5000, this.gameState.world.height || this.draw.winy);
+		this.draw.paper = Raphael('viewPort', 5000, 5000);
 
 		this.draw.graph();
 		//g = this.winy/10;
@@ -259,7 +259,26 @@ _game = game = {
 			var paper = this.paper
 			,winy = this.winy
 			,winx = this.winx
-			,alphaGraph = {}
+			var w = $('#viewPort').width();
+			var h = $('#viewPort').height();
+			var vp =  $('#viewPort');
+			var cx = (winx-w)/2;
+			var cy = (winy-h)/2;
+			var rx = w/winx;
+			var ry = h/(winy);
+			paper.circle(2500,2500,2500).attr({fill:"r#444:20-#ccc:99-#fff"});
+			vp.css({left:-1500,top:cy});
+			
+			// moves view port
+			$('#viewPort').mousemove(function(e){
+				var x = e.pageX;
+				var y = e.pageY;
+					vp.css({
+					left : x*(1 - rx)});
+					vp.css({
+					top  : y*(1 - ry)});
+				});
+			/*
 			,iable = winy/25, xine = 5000/iable;
 			
 			for (i=0;i<xine;++i){
@@ -274,6 +293,7 @@ _game = game = {
 			for (i=0;i<xine;++i){
 				paper.path("M0 "+(winy/100)*i+"L"+5000+" "+(winy/100)*i).attr({"stroke":"rgba(252,244,6,.1)"});
 			}
+			*/
 		},
 		energyWave:function(x,y,r,_id){
 			var _id = 123
@@ -310,10 +330,7 @@ _game = game = {
 						"stroke":"rgba(105,161,109,.5)",
 						"stroke-width":2
 					})
-					,paper.circle(x,y,14).attr({
-						"fill":"r(.45,.45)rgba(112,23,18,.67):5-rgba(162,47,171,1):80-rgba(230,230,240,1)", 
-						"stroke-width":0
-					})
+					, paper.flag(x,y,8,.66)
 				);
 				renderState.position = c1;
 				renderState.rotate = 0;
@@ -351,11 +368,11 @@ _game = game = {
 			this.paper.rect(10,10,30,700,5).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"90-"+color+":"+x+"-#111:"+x});
 		},
 		myFluxCapacitor: function(x){
-			/*
+
 			color: "rgba(6,252,30,1)"
 			this.paper.rect(37,this.winy-77,300,30,15).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"360-rgba(30,245,245,.68):"+x+"-#111:"+x});
 			this.paper.text(90,this.winy-62,"FLUX CAPACITY").attr({stroke:"#111"})
-			*/
+
 		},
 		linear:function (x, y,x1,y1){
 			var m = (y1 - y)/x1 -x;
