@@ -99,16 +99,15 @@ _game = game = {
 	}},
 	event_emitter: function(){
 		var z = this,
-		keys = [65,68,83,87,69,81,32,70,48,49,50,51,52,53,54,55,56,57]
+		keys = [68,83,70,48,49,50,51,52,53,54,55,56,57] // 83 = s, 70 = f, 68 = d 48 - 57 are nums, 
 		, kup = function(e){
 					console.log(e.keyCode);
 			e.preventDefault()
 			if(e.keyCode == 68){toggleValue(z.scout);z.scout.set()}
 			if (!_.include(keys, e.keyCode)){return false}
-			if (e.keyCode > 48 && e.keyCode < 58){z.fluxCapacity.set((e.keyCode-48)*10);return}
-			if (e.keyCode == 48){z.fluxCapacity.set(100);return}
-			var code = e.which||e.keyCode;
-			z.socket.emit("event", "key", code, z.mouse_coordinates);
+			else if (e.keyCode > 48 && e.keyCode < 58){z.fluxCapacity.set((e.keyCode-48)*10);return}
+			else if (e.keyCode == 48){z.fluxCapacity.set(100);return}
+			else {z.socket.emit("event", {position: game.getPlayersUnit().position, code: e.keyCode, mouse: z.mouse_coordinates});}
 		}
 		, click_fn = function(e){
 			var xcoord = (e.clientX - parseInt(vp.css("left")));
@@ -259,6 +258,9 @@ _game = game = {
 
 			$.each(serverData.units,function(k,unit){
 				//is rendered?
+				if (unit.owner == game.getPlayersUnit().owner){
+					game.draw.myEnergyMeter(unit.energy/10)
+				}
 				if(!z.isUnitRendered(unit.id)){
 					//TODO UPDATE THIS TO DRAW UNIT
 					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
@@ -448,9 +450,19 @@ _game.draw = {
 		for (i=0; i < w; i+=50){
 			paper.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
 		}
-		$('#viewPort').css({left: cx+'px', top: cy+'px'})
-		//paper.circle(2500,1000,2400).attr({"fill":"transparent", "stroke-width":10});
-		//vp.css({left:-1500,top:cy});			
+		if (game.getPlayersUnit.team = 0){
+			$('#viewPort').css({left: cx+'px', top: cy+'px'})
+		}
+		game.draw.yellowBase(300,1290,200,200);
+		paper.text(500,1700, "f = fire\nd(toggle) = scout\nS= mak tower\nclick = move\n scroll / 0-9 = set flux cap").attr({"font-size":70, fill:"#333", "stroke":"rgba(252,244,6,.2)", "stroke-width":5})
+		paper.text(3900,1700, "f = fire\nd(toggle) = scout\nS= mak tower\nclick = move\n scroll / 0-9 = set flux cap").attr({"font-size":70, fill:"#333", "stroke":"rgba(252,244,6,.2)", "stroke-width":5})
+		game.draw.purpleBase(3700,1290,200,200);
+		if (game.getPlayersUnit.team == 0){
+			vp.css({left:0,top:-1250 });
+		}
+		if (game.getPlayersUnit.team == 1){
+			vp.css({left:-4000,top:1250});
+		}
 	},
 	energyWave:function(x,y,r,_id){
 		var _id = 123
@@ -581,6 +593,9 @@ _game.draw = {
 		var m = (y1 - y)/x1 -x;
 		var b = y - (m*x);
 		return [m,b]
+	},
+	moveBoard:function(up){
+		$('#viewPort').css({left: up[0], top: up[1]})
 	}
 };
 
