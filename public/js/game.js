@@ -206,19 +206,19 @@ var game = {
 			
 			game[_id] = this.paper.circle(0,this.winy,r).attr({"stroke-width":0,"fill":"rrgba(138,211,242,1)-rgba(68,68,68,0)"}).animate({"cx":5000,"cy":z,"r":r*100,"opcaity":0,"fill-opacity":0},747)
 		},
-		drawUnit:function (x,y,_id){
-			var paper = this.paper;
-			var _id = "aeiou"; 
-			game[_id] = paper.set();
+		drawUnit:function (x,y,_id,team, shield){
+			if (team == "purple"){ var tcolor = "purple", fcolor =.66}
+			if (team == "yellow"){var tcolor = "rgba(47,208,63,.2):80", fcolor =.25}
+		game[_id] = paper.set();
 			game[_id].push(
 				paper.circle(x-3,y+5,40).attr({"fill":"rrgba(0,0,0,.5):50-rgba(0,0,0,.1)","stroke-width":0}),
-				paper.circle(x, y, 40).attr({"fill":"rrgba(240,240,240,1):10-rgba(47,208,63,1):75-rgba(165,182,157,1)","stroke":"yellow","stroke-width":1,}),
-				paper.path("M"+(x+28)+" "+(y+28)+"L"+(x-28)+" "+(y-28)+" M"+(x-28)+" "+(y+28)+"L"+(x+28)+" "+(y-28)).attr({"stroke":"rgba(105,161,109,.5)", "stroke-width":2}),
+				paper.circle(x, y, 40).attr({"fill":"rrgba(240,240,240,1):10-"+tcolor+":75-rgba(165,182,157,1)","stroke":"#333","stroke-width":1,}),
+				paper.path("M"+(x+28)+" "+(y+28)+"L"+(x-28)+" "+(y-28)+" M"+(x-28)+" "+(y+28)+"L"+(x+28)+" "+(y-28)).attr({"stroke":"rgba(105,161,109,.5)", "stroke-width":2})
 				//paper.circle(x,y,14).attr({"fill":"r(.45,.45)rgba(112,23,18,.67):5-rgba(162,47,171,1):80-rgba(230,230,240,1)", "stroke-width":0})
-				this.paper.flag(x,y,10,.25)
 			);
-			setInterval(function(){game[_id].rotate(15)},30	); // for later
-			//setInterval(function(){game[_id].translate(3,3)},33)
+			if (shield){game[_id].push(paper.circle(x-3,y+5,40+1*shield).attr({"fill":"rrgba(255,255,255,.1):20-"+tcolor,"stroke-width":0,"fill-opacity":.1}))}
+			e[_id].push(paper.flag(x,y,10,fcolor))
+			//setInterval(function(){e[_id].rotate(15)},30);
 		},
 		yellowBase : function(x,y,h,w){
 				for (i=0;i<8;++i){

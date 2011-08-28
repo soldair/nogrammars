@@ -45,11 +45,12 @@ function graph(){
 		commander.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
 	}	
 }graph()
-		$(document).mousemove(function(e){
+	/*	$(document).mousemove(function(e){
 			var x = parseInt(e.pageX)
 			, y = parseInt(e.pageY);
 			commander.flag(x+parseFloat(t()+Math.random().toString())*20,y+parseFloat(t()+Math.random().toString())*20,20,1).animate({cx:winx/2,cy:winy/2},200)
 		})
+	*/
 var e = {
 	drawUnit:function (x,y,_id,team, shield){
 		if (team == "purple"){ var tcolor = "purple", fcolor =.66}
