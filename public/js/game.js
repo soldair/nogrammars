@@ -564,38 +564,41 @@ _game.draw = {
 		,isMoving = (c1[0] != c2[0] || c1[1] != c2[1])
 		,renderState = _game.renderState.units[_id];
 		
-		if(!renderState.object){
-
-			renderState.object = paper.set();
-			renderState.object.push(
-				paper.circle(x-3,y+5,40).attr({
-					"fill":"rrgba(0,0,0,.5):50-rgba(0,0,0,.1)",
-					"stroke-width":0
-				})
-				, paper.circle(x, y, 40).attr({
-					"fill":"rrgba(240,240,240,1):10-rgba(47,208,63,1):75-rgba(165,182,157,1)",
-					"stroke":"yellow",
-					"stroke-width":1
-				})
-				, paper.path("M"+(x+28)+" "+(y+28)+"L"+(x-28)+" "+(y-28)+" M"+(x-28)+" "+(y+28)+"L"+(x+28)+" "+(y-28)).attr({
-					"stroke":"rgba(105,161,109,.5)",
-					"stroke-width":2
-				})
-				, paper.flag(x,y,8,.66)
-			);
-			renderState.position = c1;
-			renderState.rotate = 0;
-		
+		if(renderState.object){
+			renderState.object.remove();
 		} else {
+				renderState.rotate = 0;
+		}
+		
+		renderState.object = paper.set();
+		renderState.object.push(
+			paper.circle(x-3,y+5,40).attr({
+				"fill":"rrgba(0,0,0,.5):50-rgba(0,0,0,.1)",
+				"stroke-width":0
+			})
+			, paper.circle(x, y, 40).attr({
+				"fill":"rrgba(240,240,240,1):10-rgba(47,208,63,1):75-rgba(165,182,157,1)",
+				"stroke":"yellow",
+				"stroke-width":1
+			})
+			, paper.path("M"+(x+28)+" "+(y+28)+"L"+(x-28)+" "+(y-28)+" M"+(x-28)+" "+(y+28)+"L"+(x+28)+" "+(y-28)).attr({
+				"stroke":"rgba(105,161,109,.5)",
+				"stroke-width":2
+			})
+			, paper.flag(x,y,8,.66)
+		);
+		renderState.position = c1;
+		
+		//} else {
 			//console.log('translate: ',renderState.position[0]-x,renderState.position[1]-y);
 			//console.log(renderState.position);
 			//console.log(serverData.position);
 			// apply movement translated from last rendered position to current
-			renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1]);
+			//renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1]);
 			//renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1],1);
-			renderState.position = c1;
+			//renderState.position = c1;
 			
-		}
+		//}
 		
 		if(isMoving){
 			renderState.rotate += 10;
