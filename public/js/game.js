@@ -1,9 +1,18 @@
-var socket = io.connect();
-
+var socket = io.connect(),
+winx=window.innerWidth,
+winy=window.innerHeight;
  socket.on('connect', function () {
    console.log('connection made')
  });
-
+function toggleValue(getter){
+	if (!getter){
+		getter = true;
+		return
+	}
+	if (getter){
+		getter = !getter
+	}
+}
 var game = {
 	socket:null,
 	mouse_coordinates:[0,0],
@@ -24,14 +33,14 @@ var game = {
 		this.socketInit();
 		this.draw.yellowBase(300,300,200,200);
 		this.draw.purpleBase(600,300,200,200);
-		this.draw.myEnergyMeter(66); // param  = % energy
-		this.fluxCapacity.set(40); // probably not a percentage of energy, but a unit value
+		this.draw.myEnergyMeter(88); // param  = % energy
+		this.fluxCapacity.set(80); // probably not a percentage of energy, but a unit value
 	},
 	cmds:{
 		click: "fire",
 		
 	},
-	my_energy: 66, // it is 5:17 am after all
+	my_energy: 88, // it is 5:17 am after all
 	fluxCapacity:{get:0, set : function(x){var y = x; if (x > 100){y = 100}; if (x < 0){y = 0}; game.draw.myFluxCapacitor(y); this.get = y}},
 	new_unit: function(type, _id, x, y){
 
@@ -66,11 +75,35 @@ var game = {
 			}
 		}
 	},
+	scout: {
+		get: 0,
+		set: function(){
+		if (!this.get){$('#console').unbind('mousemove');return}
+		var w = $('#viewPort').width();
+		var h = $('#viewPort').height();
+		var vp =  $('#viewPort');
+		var vpleft = parseInt(vp.css("left"));
+		var vptop = parseInt(vp.css("top"));
+		var cx = (winx-w)/2;
+		var cy = (winy-h)/2;
+		var rx = w/winx;
+		var ry = h/(winy)
+		$("#console").mousemove(function(e){
+			var x = e.pageX;
+			var y = e.pageY;
+				vp.css({
+				left : x*(1 - rx)});
+				vp.css({
+				top  : y*(1 - ry)});
+			});
+	}},
 	event_emitter: function(){
 		var z = this,
 		keys = [65,68,83,87,69,81,32,70,48,49,50,51,52,53,54,55,56,57]
 		, kup = function(e){
+					console.log(e.keyCode);
 			e.preventDefault()
+			if(e.keyCode == 68){toggleValue(game.scout.get);game.scout.set()}
 			if (!_.include(keys, e.keyCode)){return false}
 			if (e.keyCode > 48 && e.keyCode < 58){game.fluxCapacity.set((e.keyCode-48)*10);return}
 			if (e.keyCode == 48){game.fluxCapacity.set(100);return}
@@ -78,6 +111,7 @@ var game = {
 			z.socket.emit("event", "key", code, z.mouse_coordinates);
 		}
 		, click_fn = function(e){
+			console.log(e)
 			z.socket.emit("event", "click", z.cmds.click, z.mouse_coordinates)
 		}
 		, getDelta = function(e){
@@ -91,8 +125,8 @@ var game = {
 				game.fluxCapacity.set(game.fluxCapacity.get-5);
 			}
 		}
-		$(document).bind('keyup',kup);
-		$('#viewPort').bind('click',click_fn);
+		$(document).bind('keypress',kup);
+		$(document).bind('click',click_fn);
 		var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel"
 		document.addEventListener(mousewheelevt, getDelta, false)
 	},
@@ -126,8 +160,11 @@ var game = {
 		        };
 		this.draw.paper = Raphael('viewPort', 5000, 5000);
 		this.draw.graph();
+		this.draw.commander = Raphael('console',winx,winy );
+		
 	},
 	draw:{
+		commander:null,
 		paper:null,
 		winx:window.innerWidth,
 		winy:window.innerHeight,
@@ -143,7 +180,7 @@ var game = {
 			var cy = (winy-h)/2;
 			var rx = w/winx;
 			var ry = h/(winy)
-			,iable = h/25, xine = 5000/iable;
+
 			
 			for (i=0; i < w; i+=10){
 				paper.path("M"+i+" 0L"+i+" "+h).attr({"stroke":"rgba(252,244,6,.1)"});
@@ -158,33 +195,8 @@ var game = {
 				paper.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
 			}
 			
-			
-						/*
-			for (i=0;i<xine;++i){
-				paper.path("M"+iable*i+" 0L"+iable*i+" "+winy).attr({"stroke":"rgba(252,244,6,.1)"});
-			}
-			for (i=0;i<$('#viewPort').width()/(winy/100);++i){
-				paper.path("M"+(winy/100)*i+" 0L"+(winy/100)*i+" "+winy).attr({"stroke":"rgba(252,244,6,.1)"});
-			}
-			for (i=0;i<25;++i){
-				paper.path("M0 "+iable*i+"L"+5000+" "+iable*i).attr({"stroke":"rgba(252,244,6,.1)"});
-			}
-			for (i=0;i<xine;++i){
-				paper.path("M0 "+(winy/100)*i+"L"+5000+" "+(winy/100)*i).attr({"stroke":"rgba(252,244,6,.1)"});
-			}*/
 			paper.circle(2500,2500,2400).attr({"fill":"transparent", "stroke-width":300});
-			vp.css({left:-1500,top:cy});
-			
-			// moves view port
-			$('#viewPort').mousemove(function(e){
-				var x = e.pageX;
-				var y = e.pageY;
-					vp.css({
-					left : x*(1 - rx)});
-					vp.css({
-					top  : y*(1 - ry)});
-				});
-			
+			vp.css({left:-1500,top:cy});			
 		},
 		energyWave:function(x,y,r,_id){
 			var _id = 123
@@ -209,28 +221,35 @@ var game = {
 		},
 		yellowBase : function(x,y,h,w){
 				for (i=0;i<8;++i){
-				 this.paper.rect(x+(10*i),y+(10*i),h-(20*i),w-(20*i)).attr({"stroke":"rgba(47,208,63,1)", fill: "#444","stroke.width":"3px"})
+				 game.yellowBase = this.paper.rect(x+(10*i),y+(10*i),h-(20*i),w-(20*i)).attr({"stroke":"rgba(47,208,63,1)", fill: "#444","stroke.width":"3px"})
 				}
-				this.paper.flag(x+100,y+100,14,.25)
+				game.draw.yellowFlag(x,y,h,w);
+		},
+		yellowFlag: function(x,y,h,w){
+			game.yellowFlag = this.paper.flag(x+100,y+100,14,.25)
 		},
 		purpleBase : function(x,y,h,w){
 				for (i=0;i<8;++i){
-				 this.paper.rect(x+(10*i),y+(10*i),h-(20*i),w-(20*i)).attr({"stroke":"purple", fill: "#444","stroke.width":"3px"})
+				game.purpleBase = this.paper.rect(x+(10*i),y+(10*i),h-(20*i),w-(20*i)).attr({"stroke":"purple", fill: "#444","stroke.width":"3px"})
 				}
-				this.paper.flag(x+100,y+100,14,.66);
+				game.draw.purpleFlag(x,y,h,w);
 		},
+		purpleFlag: function (x,y,h,w){game.purpleFlag = this.paper.flag(x+100,y+100,14,.66);},
 		myEnergyMeter: function(x){
 			var color;
 			if (x < 25) color = "red";
 			if (x > 49 && x < 75) color = "orange";
 			if (x > 24 && x < 50) color = "yellow";
 			if (x > 74) color = "green";
-			this.paper.rect(10,10,30,700,5).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"90-"+color+":"+x+"-#111:"+x});
+			this.commander.rect(10,10,30,700,5).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"90-"+color+":"+x+"-#111:"+x});
 		},
 		myFluxCapacitor: function(x){
 			color: "rgba(6,252,30,1)"
-			this.paper.rect(37,this.winy-77,300,30,15).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"360-rgba(30,245,245,.68):"+x+"-#111:"+x});
-			this.paper.text(90,this.winy-62,"FLUX CAPACITY").attr({stroke:"#111"})
+			var flux = this.commander.set();
+			flux.push(
+				this.commander.rect(55,10,300,30,15).attr({"stroke":"#f9f9f9", "stroke-width":3, "fill":"360-rgba(30,245,245,.68):"+x+"-#111:"+x}),
+				this.commander.text(180,25,"FLUX CAPACITY: SCROLL WHEEL OR NUM KEYS").attr({stroke:"#111"})
+			);
 		},
 		linear:function (x, y,x1,y1){
 			var m = (y1 - y)/x1 -x;
