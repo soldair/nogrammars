@@ -4,7 +4,7 @@ var http = require('http')
 , express = require('express')
 , io = require('socket.io')
 , hashlib = require('hashlib')
-,gameCore = require(__dirname+'/lib/game.js');
+, gameCore = require(__dirname+'/lib/game.js');
 
 //slug nogrammars secret 1QyupeJT3MVzJOLf
 
@@ -14,7 +14,7 @@ var server = {
 	games:{},
 	clients:{},
 	clientIdInc:1,
-	fullSyncKeyFrame:10000,
+	fullSyncKeyFrame:10000,//every 10 secs sync all units
 	init:function(){
 		this.express();
 		this.socketio();
@@ -158,14 +158,12 @@ var server = {
 		,g = this.games[gameId];
 		
 		if(!g){
-			this.games[gameId] = {
+			g = this.games[gameId] = {
 				clients:{},
 				//TODO TEAM SETTINGS
 				//NOTE refactor create game.. chicken and the egg .. need a game to join a user
 				game:new gameCore.game(gameId,{teams:2})
 			};
-			
-			g = this.games[gameId];
 			
 			g.game.onChangeCb = function(changes){
 				z.emitChanges(z.games[gameId],changes);
@@ -182,6 +180,7 @@ var server = {
 		
 
 		if(g && g.game && !reconnected) {
+			//TODO check for units for client id
 			//THIS IS where i make the first unit. this is not really a good place for this call but it'll do for 5:42 am
 			g.game.createUnit('ship',[+(Math.random()+'').substr(2,3),30],clientId);
 

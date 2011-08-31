@@ -225,9 +225,9 @@ _game = game = {
 		var z = this;
 		z.heartBeatInterval = setInterval(function(){
 			try{
-			for(var i=0,j=z.beatCbs.length;i<j;i++){
-				z.beatCbs[i](z.gameState);
-			}
+				for(var i=0,j=z.beatCbs.length;i<j;i++){
+					z.beatCbs[i](z.gameState);
+				}
 			} catch (e) {
 				console.error(e);
 				console.warn('ERROR IN HEARTBEAT. stopping game loop');
@@ -292,6 +292,7 @@ _game = game = {
 					
 					var p = z.math.moveToward(unit.position,unit.destination,(unit.speed||1)/translationFactor);
 					z.draw.drawShip(p[0],p[1],unit.id);
+					unit.position = p;
 					
 				}
 			});
@@ -387,20 +388,6 @@ _game.math = {
 
 		var slope = this.slope(c1,c2)
 		c3 = [c1[0],c1[1]];
-		
-		if(!slope || isNaN(slope)) {
-
-			if(c1[0] == c2[0]) {
-				c3[1] +=distance;
-			} else {
-				c3[0] +=distance;
-			}
-			if(constrain){
-				if(c3[0]>c2[0]) c3[0]=c2[0];
-				if(c3[1]>c2[1]) c3[1]=c2[1];
-			}
-			return c3;
-		} 
 		
 
 		var x = distance-slope
@@ -564,41 +551,44 @@ _game.draw = {
 		,isMoving = (c1[0] != c2[0] || c1[1] != c2[1])
 		,renderState = _game.renderState.units[_id];
 		
-		if(renderState.object){
-			renderState.object.remove();
+		if(!renderState.object){
+			renderState.object = paper.set();
+			renderState.object.push(
+				paper.circle(x-3,y+5,40).attr({
+					"fill":"rrgba(0,0,0,.5):50-rgba(0,0,0,.1)",
+					"stroke-width":0
+				})
+				, paper.circle(x, y, 40).attr({
+					"fill":"rrgba(240,240,240,1):10-rgba(47,208,63,1):75-rgba(165,182,157,1)",
+					"stroke":"yellow",
+					"stroke-width":1
+				})
+				, paper.path("M"+(x+28)+" "+(y+28)+"L"+(x-28)+" "+(y-28)+" M"+(x-28)+" "+(y+28)+"L"+(x+28)+" "+(y-28)).attr({
+					"stroke":"rgba(105,161,109,.5)",
+					"stroke-width":2
+				})
+				, paper.flag(x,y,8,.66)
+			);
+			renderState.position = [x,y];
+			renderState.rotate = 0;
+			//console.log('NEW OBJECT ',renderState.object);
+			
 		} else {
-				renderState.rotate = 0;
-		}
-		
-		renderState.object = paper.set();
-		renderState.object.push(
-			paper.circle(x-3,y+5,40).attr({
-				"fill":"rrgba(0,0,0,.5):50-rgba(0,0,0,.1)",
-				"stroke-width":0
-			})
-			, paper.circle(x, y, 40).attr({
-				"fill":"rrgba(240,240,240,1):10-rgba(47,208,63,1):75-rgba(165,182,157,1)",
-				"stroke":"yellow",
-				"stroke-width":1
-			})
-			, paper.path("M"+(x+28)+" "+(y+28)+"L"+(x-28)+" "+(y-28)+" M"+(x-28)+" "+(y+28)+"L"+(x+28)+" "+(y-28)).attr({
-				"stroke":"rgba(105,161,109,.5)",
-				"stroke-width":2
-			})
-			, paper.flag(x,y,8,.66)
-		);
-		renderState.position = c1;
-		
-		//} else {
-			//console.log('translate: ',renderState.position[0]-x,renderState.position[1]-y);
+
+			var translate = [renderState.position[0]-x,renderState.position[1]-y];
+			
+			console.log('translate: ',translate);
 			//console.log(renderState.position);
 			//console.log(serverData.position);
 			// apply movement translated from last rendered position to current
-			//renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1]);
-			//renderState.object.translate(renderState.position[0]-c1[0],renderState.position[1]-c1[1],1);
-			//renderState.position = c1;
+			renderState.object.translate(-Math.round(translate[0]),-Math.round(translate[1]));
+			//renderState.object.animate({cx:renderState.position[0],cy:renderState.position[1]},0);
+			//console.log(renderState.object)
 			
-		//}
+			//renderState.object.translate(c1[0],c1[1],1);
+			renderState.position[0] = x;
+			renderState.position[1] = y;//renderState.position[1]+translate[1];
+		}
 		
 		if(isMoving){
 			renderState.rotate += 10;
