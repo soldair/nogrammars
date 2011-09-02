@@ -8,11 +8,93 @@ html
 		script(src='/js/underscore-min.js')
 
 	body
-		#viewPort
-		#msg
+		canvas#test(width='500', height='500',style='border:5px solid white')
 	script(src='/js/game.js')
 	script
-		$(function(){
-			game.draw.bootPaper();
-			game.draw.graph();
-		});
+
+		var canvas = $("#test")[0]
+		,ctx = canvas.getContext('2d')
+		,start=[0,50],dest = [500,400];
+
+		//forward
+		ctx.fillStyle = "rgb(0,200,100)";
+
+		while(start[0] != dest[0] || start[1] != dest[1]) {
+			ctx.fillRect(start[0],start[1],1,1);
+			start = game.math.moveToward(start,dest,10);
+			
+		}
+
+		//back
+		dest = [0,50];
+		ctx.fillStyle = "rgb(0,50,255)";
+
+		while(start[0] != dest[0] || start[1] != dest[1]) {
+			ctx.fillRect(start[0],start[1],1,1);
+			start = game.math.moveToward(start,dest,13);
+		}
+
+		//back
+		start = [500,0];
+		dest = [0,400];
+		ctx.fillStyle = "rgb(255,0,0)";
+
+		while(start[0] != dest[0] || start[1] != dest[1]) {
+			ctx.fillRect(start[0],start[1],4,4);
+			start = game.math.moveToward(start,dest,5);
+		}
+
+		ctx.fillRect(start[0],start[1],4,4);
+
+		//no slope
+
+		start = [50,500];
+		dest = [50,0];
+
+		ctx.fillStyle = "rgb(200,0,50)";
+
+		while(start[0] != dest[0] || start[1] != dest[1]) {
+			ctx.fillRect(start[0],start[1],1,1);
+			start = game.math.moveToward(start,dest,1);
+			//console.log(start);
+		}
+
+		//no slope other way
+
+		start = [60,0];
+		dest = [60,500];
+
+		ctx.fillStyle = "rgb(200,0,100)";
+
+		while(start[0] != dest[0] || start[1] != dest[1]) {
+			ctx.fillRect(start[0],start[1],1,1);
+			start = game.math.moveToward(start,dest,1);
+			//console.log(start);
+		}
+
+
+		//no slope x
+
+		start = [0,50];
+		dest = [500,50];
+
+		ctx.fillStyle = "rgb(100,0,150)";
+
+		while(start[0] != dest[0] || start[1] != dest[1]) {
+			ctx.fillRect(start[0],start[1],1,1);
+			start = game.math.moveToward(start,dest,1);
+			//console.log(start);
+		}
+
+		//no slope other way x
+
+		start = [500,60];
+		dest = [0,60];
+
+		ctx.fillStyle = "rgb(100,0,100)";
+
+		while(start[0] != dest[0] || start[1] != dest[1]) {
+			ctx.fillRect(start[0],start[1],1,1);
+			start = game.math.moveToward(start,dest,1);
+			//console.log(start);
+		}
