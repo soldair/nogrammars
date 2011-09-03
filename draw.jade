@@ -8,22 +8,24 @@ html
 		script(src='/js/underscore-min.js')
 
 	body
-		canvas#test(width='500', height='500',style='border:5px solid white')
+		canvas#test(width='2510', height='2510',style='border:5px solid white')
 	script(src='/js/game.js')
 	script
 
 		var canvas = $("#test")[0]
 		,ctx = canvas.getContext('2d')
 		,start=[0,50],dest = [500,400];
-
+		
+		
 		//forward
 		ctx.fillStyle = "rgb(0,200,100)";
-
+		var i = 10;
 		while(start[0] != dest[0] || start[1] != dest[1]) {
 			ctx.fillRect(start[0],start[1],1,1);
 			start = game.math.moveToward(start,dest,10);
-			
+
 		}
+
 
 		//back
 		dest = [0,50];
@@ -39,6 +41,8 @@ html
 		dest = [0,400];
 		ctx.fillStyle = "rgb(255,0,0)";
 
+		ctx.fillRect(start[0],start[1],4,4);
+
 		while(start[0] != dest[0] || start[1] != dest[1]) {
 			ctx.fillRect(start[0],start[1],4,4);
 			start = game.math.moveToward(start,dest,5);
@@ -47,7 +51,6 @@ html
 		ctx.fillRect(start[0],start[1],4,4);
 
 		//no slope
-
 		start = [50,500];
 		dest = [50,0];
 
@@ -82,10 +85,10 @@ html
 
 		while(start[0] != dest[0] || start[1] != dest[1]) {
 			ctx.fillRect(start[0],start[1],1,1);
-			start = game.math.moveToward(start,dest,1);
+			start = game.math.moveToward(start,dest,10);
 			//console.log(start);
 		}
-
+		
 		//no slope other way x
 
 		start = [500,60];
@@ -95,6 +98,18 @@ html
 
 		while(start[0] != dest[0] || start[1] != dest[1]) {
 			ctx.fillRect(start[0],start[1],1,1);
+			start = game.math.moveToward(start,dest,1);
+			//console.log(start);
+		}
+		
+		
+		start=[794,337];
+		dest=[699,2349];
+
+		ctx.fillStyle = "rgb(50,255,0)";
+
+		while(start[0] != dest[0] || start[1] != dest[1]) {
+			ctx.fillRect(start[0],start[1],10,10);
 			start = game.math.moveToward(start,dest,1);
 			//console.log(start);
 		}

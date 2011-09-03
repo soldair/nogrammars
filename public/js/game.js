@@ -384,50 +384,29 @@ _game = game = {
 };
 
 _game.math = {
- 	moveToward:function(c1,c2,distance,constrain) {
-
-		//console.log('start ',c1,' dest ',c2);
+	moveToward:function(c1,c2,distance,constrain){
+		// theta is the angle (in radians) of the direction in which to move
+		var theta = Math.atan2(c2[1] - c1[1], c2[0] - c1[0])
+		,deltax = distance*Math.cos(theta)
+		,deltay = distance*Math.sin(theta);
 		
-
-		var c3 = [c1[0],c1[1]]
-		, x = 0
-		, y = 0;
+		//new point!
+		var c3 =[c1[0] + deltax,c1[1] + deltay]
 		
-		if(c1[0] == c2[0]) {
-			y = distance;
-		} else if(c1[1] == c2[1]){
-			x = distance;
-		} else {
-			var slope = this.slope(c1,c2);
-			x = distance-slope
-			y = slope*x;
-		}
-		
-		//apply direction
-		if(c1[0] > c2[0]) x = -x;
-		if(c1[1] > c2[1]) y = -y;
-		
-		c3 =[c1[0]+x,c1[1]+y];
 		if(constrain !== false){
 			//stop movement at desired location
-			if(x > 0){//moving right
+			if(deltax > 0){//moving righ
 				if(c3[0]>c2[0]) c3[0] = c2[0];
 			} else {//moving left
 				if(c3[0]<c2[0]) c3[0] = c2[0];
 			}
-			if(y > 0){//up
+			if(deltay > 0){//up
 				if(c3[1]>c2[1]) c3[1] = c2[1];
 			} else {//down
 				if(c3[1]<c2[1]) c3[1] = c2[1];
 			}
 		}
-
 		return c3;
-	},
-	slope:function(c1,c2){
-		var out = (c1[1]-c2[1])/(c1[0]-c2[0]);
-		if(out == Infinity || isNaN(out)) out = 0;
-		return out;
 	}
 };
 
@@ -585,13 +564,14 @@ _game.draw = {
 			//console.log('NEW OBJECT ',renderState.object);
 			
 		} else {
-
-			var translate = [renderState.position[0]-x,renderState.position[1]-y];
+			//game.renderState.units[1]
+			var translate = [renderState.object.items[0].attrs.cx-x,renderState.object.items[0].attrs.cy-y];
 			
 			//console.log('translate: ',translate);
 			//console.log(renderState.position);
 			//console.log(serverData.position);
 			// apply movement translated from last rendered position to current
+			//renderState.object
 			renderState.object.translate(-Math.round(translate[0]),-Math.round(translate[1]));
 			//renderState.object.animate({cx:renderState.position[0],cy:renderState.position[1]},0);
 			//console.log(renderState.object)
