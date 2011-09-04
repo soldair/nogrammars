@@ -64,7 +64,8 @@ var server = {
 	},
 	socketio:function(){
 		var z = this
-		, sio = z.sio = io.listen(z.app);
+		, sio = z.sio = io.listen(z.app)
+		,iosid;
 		
 		sio.set('log level',1);
 		
@@ -75,8 +76,8 @@ var server = {
 			console.log('socket id ', socket.id);
 			
 			socket.on("join",function(data){
-				var game = data.game
-				,iosid = hashlib.md5(data.sid);
+				var game = data.game;
+				iosid = hashlib.md5(data.sid);
 				
 				if(game && /^\d+$/.test(game+'')) {
 					socket.get('clientid',function(id){
@@ -204,7 +205,6 @@ var server = {
 	},
 	disconnectedFromGame:function(id){
 		console.log('DISCONNECT '+id);
-		
 		
 		var z = this;
 		if(!z.clients[id]) return;

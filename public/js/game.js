@@ -112,6 +112,9 @@ _game = game = {
 		, click_fn = function(e){
 			var xcoord = (e.clientX - parseInt(vp.css("left")));
 			var ycoord = (e.clientY - parseInt(vp.css("top")));
+
+			console.log('click! ',xcoord, ' , ',ycoord);
+			
 			parseInt(vp.css("left")) + (e.clientX - winx/2)
 			if(z.playerId) {
 				z.socket.emit("event", {client:z.playerId,type:"click", command:z.cmds.click, coords:[xcoord,ycoord],energy: z.fluxCapacity.get});
