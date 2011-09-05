@@ -26,7 +26,19 @@ _game = game = {
 	beatCbs:[],
 	clientIntervalTime:25,
 	heartBeatInterval:null,
-	viewPort:null,
+	viewPort:{
+		el:null,
+		position:[0,0],
+		destination:[0,0],
+		speed:5//per client side tick
+	},
+	console:{
+		el:null,
+		width:0,
+		height:0,
+ 		controlMargin:50,
+		state:'active'
+	},
 	gameState:{
 		serverIntervalTime:200,
 		units:{}
@@ -37,9 +49,7 @@ _game = game = {
 	},
 	init : function(){
 		var z = this;
-		z.viewPort = $('#viewPort').mousemove(function(e){
-			z.mouse_coordinates = [e.clientX, e.clientY]
-		});
+		
 		this.event_emitter();
 		//set loader until server reports game state
 		this.loading(true);
@@ -77,26 +87,31 @@ _game = game = {
  	scout: {
 		get: 0,
 		set: function(){
-		if (!this.get){$('#console').unbind('mousemove');return}
-		var w = $('#viewPort').width();
-		var h = $('#viewPort').height();
-		var vp =  $('#viewPort');
-		var vpleft = parseInt(vp.css("left"));
-		var vptop = parseInt(vp.css("top"));
-		var cx = (winx-w)/2;
-		var cy = (winy-h)/2;
-		var rx = w/winx;
-		var ry = h/(winy)
-		$("#console").mousemove(function(e){
-			var x = e.screenX;
-			var y = e.screenY;
-			var xzoom = -(x/winx)*(w)+w/2;
-			var yzoom = -(y/winy)*(h)+h/2;
-			//console.log(w);
-				vp.css({
-				left : xzoom, top: yzoom});
-		});
-	}},
+			/*
+			if (!this.get){
+				$('#console').unbind('mousemove');return
+			}
+			var w = $('#viewPort').width();
+			var h = $('#viewPort').height();
+			var vp =  $('#viewPort');
+			var vpleft = parseInt(vp.css("left"));
+			var vptop = parseInt(vp.css("top"));
+			var cx = (winx-w)/2;
+			var cy = (winy-h)/2;
+			var rx = w/winx;
+			var ry = h/(winy)
+			$("#console").mousemove(function(e){
+				var x = e.screenX;
+				var y = e.screenY;
+				var xzoom = -(x/winx)*(w)+w/2;
+				var yzoom = -(y/winy)*(h)+h/2;
+				//console.log(w);
+					vp.css({
+					left : xzoom, top: yzoom});
+			});
+			*/
+		}
+	},
 	event_emitter: function(){
 		var z = this,
 		keys = [68,83,70,48,49,50,51,52,53,54,55,56,57] // 83 = s, 70 = f, 68 = d 48 - 57 are nums, 
@@ -107,20 +122,27 @@ _game = game = {
 			if (!_.include(keys, e.keyCode)){return false}
 			else if (e.keyCode > 48 && e.keyCode < 58){z.fluxCapacity.set((e.keyCode-48)*10);return}
 			else if (e.keyCode == 48){z.fluxCapacity.set(100);return}
-			else {z.socket.emit("event", {position: game.getPlayersUnit().position, code: e.keyCode, mouse: z.mouse_coordinates});}
+			else {
+				z.socket.emit("event", {
+					position: game.getPlayersUnit().position
+					, code: e.keyCode
+					, mouse: z.mouse_coordinates
+				});
+			}
 		}
 		, click_fn = function(e){
 			var xcoord = (e.clientX - parseInt(vp.css("left")));
 			var ycoord = (e.clientY - parseInt(vp.css("top")));
-
-			console.log('click! ',xcoord, ' , ',ycoord);
 			
 			parseInt(vp.css("left")) + (e.clientX - winx/2)
 			if(z.playerId) {
 				z.socket.emit("event", {client:z.playerId,type:"click", command:z.cmds.click, coords:[xcoord,ycoord],energy: z.fluxCapacity.get});
 			}
-			//just set it to animate as a temp thing because the jumping hurts my eyes.
-			$('#viewPort').animate({left: parseInt(vp.css("left")) - (e.clientX - winx/2), top: parseInt(vp.css("top")) - (e.clientY - winy/2)},500)
+
+			z.viewPort.destination = [
+				parseInt(vp.css("left")) - (e.clientX - winx/2)
+				,parseInt(vp.css("top")) - (e.clientY - winy/2)
+			];
 		}
 		, getDelta = function(e){
 			var evt=window.event || e;
@@ -155,6 +177,7 @@ _game = game = {
 			z.paper();
 
 			z.loading(false);
+			//TODO center viewport on players ship
 			z.setBeats();
 			z.checkHeartBeat();
 		});
@@ -263,12 +286,13 @@ _game = game = {
 	},
 	setBeats:function(){
 		var z = this;
+
+		this.manageViewport()
+		
 		//unit movement
 		this.onBeat(function(serverData){
 			
 			var translationFactor = z.gameState.serverIntervalTime/z.clientIntervalTime;
-			
-			//this will be optimzed to only loop changed.
 
 			$.each(serverData.units,function(k,unit){
 				//is rendered?
@@ -285,7 +309,7 @@ _game = game = {
 					//TODO UPDATE THIS TO DRAW UNIT
 					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
 
-				} else if(unit.position[0] != unit.destination[0] || unit.position[1] != unit.destination[1]){
+				} else if(z.math.notEqualPoints(unit.position,unit.destination)){
 					
 					if(unit.position[0] === null) {//shouldnt happen
 						unit.position = [unit.destination[0],unit.destination[1]];
@@ -300,6 +324,7 @@ _game = game = {
 				}
 			});
 		});
+		
 	},
 	isUnitRendered:function(id){
 		return (this.renderState.units[id]||{}).object;
@@ -334,6 +359,67 @@ _game = game = {
 	addRenderedObject:function(id,svgObject){
 		if(!this.renderState.units[_id]) this.renderState.units[_id] = {};
 		this.renderState.objects[id].object = svgObject;
+	},
+	manageViewport:function(){
+		var z = this;
+		z.viewPort.el = $('#viewPort');
+		z.viewPort.destination = z.viewPort.position;
+		
+		z.console.el = $('#console');
+		z.console.width = $(window).width();
+		z.console.height = $(window).height();
+		
+		//track the mouse - needed for game screeling regions and collision with objects to highlight/show selection
+		$('body').mousemove(function(e){
+			z.mouse_coordinates = [e.clientX, e.clientY];
+		});
+
+		$(window).bind('resize',function(){
+			z.console.el.width(z.console.width = $(window).width());
+			z.console.el.height(z.console.height = $(window).height());
+		});
+		
+		$("#console").mouseleave(function(){
+			z.console.state = 'inactive';
+		}).mouseenter(function(){
+			z.console.state = 'active';
+		});
+		
+		this.onBeat(function(serverData){
+			if(z.console.state == 'inactive') return;
+			
+			var c = z.mouse_coordinates
+			,rw = z.console.controlMargin
+			,speed = z.viewPort.speed
+			,stopMargin = 5;
+			
+			if((c[0] < rw || c[1] < rw) || (c[0] > (z.console.width-rw) || c[1] > z.console.height-rw)) {
+
+				//3 px outside should not activate scrolling. prevent scrollout of window mad times
+				if(c[0] < rw && c[0] > stopMargin){//left
+					z.viewPort.position[0] += speed+(rw-c[0]);
+				} else if(c[0] > (z.console.width-rw) && (z.console.width-c[0])>stopMargin){//right
+					z.viewPort.position[0] -= speed+(c[0]-(z.console.width-rw));
+				}
+
+				if(c[1] < rw && c[1] > stopMargin){//top
+					z.viewPort.position[1] += speed+(rw-c[1]);
+				} else if(c[1] > (z.console.height-rw) && (z.console.height-c[1])>stopMargin){//bottom
+					z.viewPort.position[1] -= speed+(c[1]-(z.console.height-rw));
+				}
+				
+				//override auto positioning
+				z.viewPort.destination = z.viewPort.position;
+				z.positionViewPort();
+			} else if(z.math.notEqualPoints(z.viewPort.destination,z.viewPort.position)){
+				//z.viewPort.position = _game.math.moveToward(z.viewPort.position,z.viewPort.destination,speed*5);
+				//z.positionViewPort();
+			}
+		});
+	},
+	positionViewPort:function(){
+		var z = this;
+		z.viewPort.el.css({left : z.viewPort.position[0], top: z.viewPort.position[1]});
 	},
 	//for debug
 	flashMessage:function(message){
@@ -387,6 +473,9 @@ _game = game = {
 };
 
 _game.math = {
+	notEqualPoints:function(a,b){
+		return (a[0] != b[0] || a[1] != b[1]);
+	},
 	moveToward:function(c1,c2,distance,constrain){
 		// theta is the angle (in radians) of the direction in which to move
 		var theta = Math.atan2(c2[1] - c1[1], c2[0] - c1[0])
@@ -470,19 +559,16 @@ _game.draw = {
 		for (i=0; i < w; i+=50){
 			paper.path("M0 "+i+"L"+w+" "+i).attr({"stroke":"rgba(252,244,6,.1)"});
 		}
-		if (game.getPlayersUnit.team = 0){
-			$('#viewPort').css({left: cx+'px', top: cy+'px'})
-		}
+		
 		game.draw.yellowBase(300,1290,200,200);
 		paper.text(500,1700, "f = fire\nd(toggle) = scout\nS= mak tower\nclick = move\n scroll / 0-9 = set flux cap").attr({"font-size":70, fill:"#333", "stroke":"rgba(252,244,6,.2)", "stroke-width":5})
 		paper.text(3900,1700, "f = fire\nd(toggle) = scout\nS= mak tower\nclick = move\n scroll / 0-9 = set flux cap").attr({"font-size":70, fill:"#333", "stroke":"rgba(252,244,6,.2)", "stroke-width":5})
 		game.draw.purpleBase(3700,1290,200,200);
-		if (game.getPlayersUnit.team == 0){
-			vp.css({left:0,top:-1250 });
-		}
-		if (game.getPlayersUnit.team == 1){
-			vp.css({left:-4000,top:1250});
-		}
+
+		var u = game.getPlayersUnit();
+		console.log('centering vp on players unit: ',u);
+		vp.css({left:u.position[0]+(winx/2),top:u.position[1]+(winy/2)});
+
 	},
 	energyWave:function(x,y,r,_id){
 		var _id = 123
@@ -569,19 +655,12 @@ _game.draw = {
 		} else {
 			//game.renderState.units[1]
 			var translate = [renderState.object.items[0].attrs.cx-x,renderState.object.items[0].attrs.cy-y];
-			
-			//console.log('translate: ',translate);
-			//console.log(renderState.position);
-			//console.log(serverData.position);
+
 			// apply movement translated from last rendered position to current
-			//renderState.object
-			renderState.object.translate(-Math.round(translate[0]),-Math.round(translate[1]));
-			//renderState.object.animate({cx:renderState.position[0],cy:renderState.position[1]},0);
-			//console.log(renderState.object)
+			renderState.object.translate(-translate[0],-translate[1]);
 			
-			//renderState.object.translate(c1[0],c1[1],1);
 			renderState.position[0] = x;
-			renderState.position[1] = y;//renderState.position[1]+translate[1];
+			renderState.position[1] = y;
 		}
 		
 		if(isMoving){
@@ -628,9 +707,6 @@ _game.draw = {
 		var m = (y1 - y)/x1 -x;
 		var b = y - (m*x);
 		return [m,b]
-	},
-	moveBoard:function(up){
-		$('#viewPort').css({left: up[0], top: up[1]})
 	}
 };
 
