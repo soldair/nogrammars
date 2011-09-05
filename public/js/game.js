@@ -363,11 +363,17 @@ _game = game = {
 	manageViewport:function(){
 		var z = this;
 		z.viewPort.el = $('#viewPort');
-		z.viewPort.destination = z.viewPort.position;
-		
 		z.console.el = $('#console');
 		z.console.width = $(window).width();
 		z.console.height = $(window).height();
+		
+		var u = game.getPlayersUnit();
+		console.log('centering vp on players unit: ',u.position);
+		//-(z.console.width/2)
+		//-(z.console.height/2)
+		z.viewPort.position = [u.position[0],u.position[1]];
+		z.viewPort.destination = z.viewPort.position;
+		console.log('vp pos: ',z.viewPort.position);
 		
 		//track the mouse - needed for game screeling regions and collision with objects to highlight/show selection
 		$('body').mousemove(function(e){
@@ -417,6 +423,8 @@ _game = game = {
 				//z.positionViewPort();
 			}
 		});
+
+		z.positionViewPort();
 	},
 	positionViewPort:function(){
 		var z = this;
@@ -566,10 +574,6 @@ _game.draw = {
 		paper.text(3900,1700, "f = fire\nd(toggle) = scout\nS= mak tower\nclick = move\n scroll / 0-9 = set flux cap").attr({"font-size":70, fill:"#333", "stroke":"rgba(252,244,6,.2)", "stroke-width":5})
 		game.draw.purpleBase(3700,1290,200,200);
 
-		var u = game.getPlayersUnit();
-		console.log('centering vp on players unit: ',u);
-		vp.css({left:u.position[0]+(winx/2),top:u.position[1]+(winy/2)});
-
 	},
 	energyWave:function(x,y,r,_id){
 		var _id = 123
@@ -619,7 +623,12 @@ _game.draw = {
 		//no more intervals for things being drawn in the view port
 		//if (eRad) {setInterval(function(){e[_id].rotate(15)},30);} // spinning is the new tower
 	},
-	drawShip:function (x,y,_id){
+	drawShip:function (x,y,_id,team){
+		//orig: rgba(47,208,63,1):75
+		var tcolor = "rgba(47,208,63,.2):80";
+		if (team == "purple"){
+			tcolor = "purple";
+		}
 		//set to empty object just in case we want to attach different render specific data like rotation
 		if(!_game.renderState.units[_id]) _game.renderState.units[_id] = {};
 		
@@ -639,7 +648,7 @@ _game.draw = {
 					"stroke-width":0
 				})
 				, paper.circle(x, y, 40).attr({
-					"fill":"rrgba(240,240,240,1):10-rgba(47,208,63,1):75-rgba(165,182,157,1)",
+					"fill":"rrgba(240,240,240,1):10-"+tcolor+"-rgba(165,182,157,1)",
 					"stroke":"yellow",
 					"stroke-width":1
 				})
@@ -665,10 +674,8 @@ _game.draw = {
 		}
 		
 		if(isMoving){
-			renderState.rotate += 0.05;
-			if(renderState.rotate > 360){
-				renderState.rotate -= 360;
-			}
+			renderState.rotate = 2;
+
 			renderState.object.rotate(renderState.rotate);
 		}
 	},
