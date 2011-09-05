@@ -379,6 +379,7 @@ _game = game = {
 			z.console.el.height(z.console.height = $(window).height());
 		});
 		
+		//watch for mouse out of window etc.
 		$("#console").mouseleave(function(){
 			z.console.state = 'inactive';
 		}).mouseenter(function(){
@@ -664,7 +665,7 @@ _game.draw = {
 		}
 		
 		if(isMoving){
-			renderState.rotate += 10;
+			renderState.rotate += 0.05;
 			if(renderState.rotate > 360){
 				renderState.rotate -= 360;
 			}
