@@ -30,7 +30,7 @@ _game = game = {
 		el:null,
 		position:[0,0],
 		destination:[0,0],
-		speed:5//per client side tick
+		speed:2//per client side tick
 	},
 	console:{
 		el:null,
@@ -292,9 +292,13 @@ _game = game = {
 		//unit movement
 		this.onBeat(function(serverData){
 			
-			var translationFactor = z.gameState.serverIntervalTime/z.clientIntervalTime;
+			var translationFactor = z.gameState.serverIntervalTime/z.clientIntervalTime
+			,t;
 
 			$.each(serverData.units,function(k,unit){
+				var lt = t||Date.now()-z.clientIntervalTime
+				,tFactor = (t-lt)/z.clientIntervalTime;
+				t = Date.now();
 				//is rendered?
 				if (unit.owner == game.getPlayersUnit().owner){
 					if(!z.renderState.units[unit.id]) z.renderState.units[unit.id] = {};
@@ -307,9 +311,9 @@ _game = game = {
 				if(!z.isUnitRendered(unit.id)){
 					console.log('DRAW SHIP');
 					//TODO UPDATE THIS TO DRAW UNIT
-					z.draw.drawShip(unit.position[0],unit.position[1],unit.id);
+					z.draw.drawShip(unit.position[0],unit.position[1],unit.id,unit.team);
 
-				} else if(z.math.notEqualPoints(unit.position,unit.destination)){
+				} else if(!z.math.pointsEqual(unit.position,unit.destination)){
 					
 					if(unit.position[0] === null) {//shouldnt happen
 						unit.position = [unit.destination[0],unit.destination[1]];
@@ -317,7 +321,8 @@ _game = game = {
 					
 					//apply delta
 					
-					var p = z.math.moveToward(unit.position,unit.destination,(unit.speed||1)/translationFactor);
+					var p = z.math.moveToward(unit.position,unit.destination,((unit.speed||1)/translationFactor));
+					
 					z.draw.drawShip(p[0],p[1],unit.id);
 					unit.position = p;
 					
@@ -363,6 +368,9 @@ _game = game = {
 	manageViewport:function(){
 		var z = this;
 		z.viewPort.el = $('#viewPort');
+		//Rrefactor to base the values of of expected server side dimensions
+		z.viewPort.width = z.viewPort.el.width();
+		z.viewPort.height = z.viewPort.el.height();
 		z.console.el = $('#console');
 		z.console.width = $(window).width();
 		z.console.height = $(window).height();
@@ -392,36 +400,60 @@ _game = game = {
 			z.console.state = 'active';
 		});
 		
+		//used so we dont go an crazy scroll mega far out of the viewport
+		var minX = (z.console.width-10)*-1
+		, maxX = z.viewPort.width+(z.console.width-10)
+		, minY = (z.console.height-10)*-1
+		, maxY = z.viewPort.height+(z.console.height-10);
+		
+		console.log('minX:',minX,' maxX:',maxX,' minY:',minY,' maxY:',maxY);
+		var t = null;
 		this.onBeat(function(serverData){
+			var lt = t||Date.now()-z.clientIntervalTime;
+			t = Date.now();
+			
 			if(z.console.state == 'inactive') return;
 			
 			var c = z.mouse_coordinates
 			,rw = z.console.controlMargin
+			//fix speed to be based on actual time passed - fixes time based game behavior between browsers
+			,tFactor = (t-lt)/z.clientIntervalTime
 			,speed = z.viewPort.speed
 			,stopMargin = 5;
+			//stop margin gives a fallback stop infinite scrolling when mouse is almost all the way against the side
+			
 			
 			if((c[0] < rw || c[1] < rw) || (c[0] > (z.console.width-rw) || c[1] > z.console.height-rw)) {
 
+				//TODO keep part of the viewport visible at all times
+				var pos = [z.viewPort.position[0],z.viewPort.position[1]];
+				
 				//3 px outside should not activate scrolling. prevent scrollout of window mad times
 				if(c[0] < rw && c[0] > stopMargin){//left
-					z.viewPort.position[0] += speed+(rw-c[0]);
+					pos[0] += (speed+(rw-c[0]))*tFactor;
+					if(pos[0] > maxX) pos[0] = maxX;
 				} else if(c[0] > (z.console.width-rw) && (z.console.width-c[0])>stopMargin){//right
-					z.viewPort.position[0] -= speed+(c[0]-(z.console.width-rw));
+					pos[0] -= (speed+(c[0]-(z.console.width-rw)))*tFactor;
+					if(pos[0] < minX) pos[0] = minX;
 				}
 
 				if(c[1] < rw && c[1] > stopMargin){//top
-					z.viewPort.position[1] += speed+(rw-c[1]);
+					pos[1] += (speed+(rw-c[1]))*tFactor;
+					if(pos[1] > maxY) pos[1] = maxY;
 				} else if(c[1] > (z.console.height-rw) && (z.console.height-c[1])>stopMargin){//bottom
-					z.viewPort.position[1] -= speed+(c[1]-(z.console.height-rw));
+					pos[1] -= (speed+(c[1]-(z.console.height-rw)))*tFactor;
+					if(pos[1] < minY) pos[1] = minY;
 				}
 				
 				//override auto positioning
-				z.viewPort.destination = z.viewPort.position;
-				z.positionViewPort();
-			} else if(z.math.notEqualPoints(z.viewPort.destination,z.viewPort.position)){
+				if(!z.math.pointsEqual(z.viewPort.position,pos)) {
+					z.viewPort.destination = z.viewPort.position = pos;
+					z.positionViewPort();
+				}
+			}// else if(z.math.pointsEqual(z.viewPort.destination,z.viewPort.position)){
 				//z.viewPort.position = _game.math.moveToward(z.viewPort.position,z.viewPort.destination,speed*5);
 				//z.positionViewPort();
-			}
+			//}
 		});
 
 		z.positionViewPort();
@@ -482,8 +514,8 @@ _game = game = {
 };
 
 _game.math = {
-	notEqualPoints:function(a,b){
-		return (a[0] != b[0] || a[1] != b[1]);
+	pointsEqual:function(a,b){
+		return (a[0] == b[0] && a[1] == b[1]);
 	},
 	moveToward:function(c1,c2,distance,constrain){
 		// theta is the angle (in radians) of the direction in which to move
@@ -626,7 +658,7 @@ _game.draw = {
 	drawShip:function (x,y,_id,team){
 		//orig: rgba(47,208,63,1):75
 		var tcolor = "rgba(47,208,63,.2):80";
-		if (team == "purple"){
+		if (team == 1){
 			tcolor = "purple";
 		}
 		//set to empty object just in case we want to attach different render specific data like rotation
