@@ -369,19 +369,16 @@ _game = game = {
 		var z = this;
 		z.viewPort.el = $('#viewPort');
 		//Rrefactor to base the values of of expected server side dimensions
-		z.viewPort.width = z.viewPort.el.width();
-		z.viewPort.height = z.viewPort.el.height();
+		z.viewPort.width = +z.viewPort.el.find('svg').attr('width');
+		z.viewPort.height = +z.viewPort.el.find('svg').attr('height');
 		z.console.el = $('#console');
 		z.console.width = $(window).width();
 		z.console.height = $(window).height();
 		
 		var u = game.getPlayersUnit();
-		console.log('centering vp on players unit: ',u.position);
-		//-(z.console.width/2)
-		//-(z.console.height/2)
-		z.viewPort.position = [u.position[0],u.position[1]];
+		z.viewPort.position = [(u.position[0]-(z.console.width/2))*-1,(u.position[1]-(z.console.height/2))*-1];
+
 		z.viewPort.destination = z.viewPort.position;
-		console.log('vp pos: ',z.viewPort.position);
 		
 		//track the mouse - needed for game screeling regions and collision with objects to highlight/show selection
 		$('body').mousemove(function(e){
@@ -400,11 +397,12 @@ _game = game = {
 			z.console.state = 'active';
 		});
 		
+		//TODO fix viewport scrolling blocking
 		//used so we dont go an crazy scroll mega far out of the viewport
-		var minX = (z.console.width-10)*-1
-		, maxX = z.viewPort.width+(z.console.width-10)
-		, minY = (z.console.height-10)*-1
-		, maxY = z.viewPort.height+(z.console.height-10);
+		var minX = (z.console.width-100)
+		, maxX = (z.viewPort.width+(z.console.width-100))*-1
+		, minY = (z.console.height-100)
+		, maxY = (z.viewPort.height+(z.console.height-100))*-1;
 		
 		console.log('minX:',minX,' maxX:',maxX,' minY:',minY,' maxY:',maxY);
 		var t = null;
@@ -431,18 +429,18 @@ _game = game = {
 				//3 px outside should not activate scrolling. prevent scrollout of window mad times
 				if(c[0] < rw && c[0] > stopMargin){//left
 					pos[0] += (speed+(rw-c[0]))*tFactor;
-					if(pos[0] > maxX) pos[0] = maxX;
+					if(pos[0] > minX) pos[0] = minX;
 				} else if(c[0] > (z.console.width-rw) && (z.console.width-c[0])>stopMargin){//right
 					pos[0] -= (speed+(c[0]-(z.console.width-rw)))*tFactor;
-					if(pos[0] < minX) pos[0] = minX;
+					if(pos[0] < maxX) pos[0] = maxX;
 				}
 
 				if(c[1] < rw && c[1] > stopMargin){//top
 					pos[1] += (speed+(rw-c[1]))*tFactor;
-					if(pos[1] > maxY) pos[1] = maxY;
+					if(pos[1] > minY) pos[1] = minY;
 				} else if(c[1] > (z.console.height-rw) && (z.console.height-c[1])>stopMargin){//bottom
 					pos[1] -= (speed+(c[1]-(z.console.height-rw)))*tFactor;
-					if(pos[1] < minY) pos[1] = minY;
+					if(pos[1] < maxY) pos[1] = maxY;
 				}
 				
 				//override auto positioning
@@ -461,7 +459,7 @@ _game = game = {
 	positionViewPort:function(){
 		var z = this;
 		z.viewPort.el.css({left : z.viewPort.position[0], top: z.viewPort.position[1]});
-	},
+	},	
 	//for debug
 	flashMessage:function(message){
 		if(!$("#flashmsg").length) {
